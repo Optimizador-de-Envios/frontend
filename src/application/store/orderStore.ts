@@ -7,9 +7,8 @@ type OrderState = {
   clearOrder: () => void
 }
 
-// Stub: setOrder and clearOrder do nothing — tests will fail (RED)
-export const useOrderStore = create<OrderState>(() => ({
-  order:      null,
-  setOrder:   () => {},
-  clearOrder: () => {},
+export const useOrderStore = create<OrderState>((set) => ({
+  order: null,
+  setOrder: (order: Order) => set(() => ({ order })),
+  clearOrder: () => set(() => ({ order: null })),
 }))
