@@ -1,48 +1,75 @@
 import type { Location } from '../../domain/order'
 
-// Adapter for OpenRouteService geocode/autocomplete
-export async function autocomplete(text: string, apiKey?: string): Promise<Location[]> {
-  const base = 'https://api.openrouteservice.org/geocode/autocomplete'
+const ORS_AUTOCOMPLETE_BASE = 'https://api.openrouteservice.org/geocode/autocomplete'
 
-  // Resolve API key: param -> NODE env -> VITE env (client dev)
-  // Avoid direct `process` identifier to keep this module browser-friendly
-  const nodeEnvKey = typeof globalThis !== 'undefined' && (globalThis as any).process
-    ? (globalThis as any).process.env?.OPENROUTESERVICE_API_KEY
-    : undefined
+/**
+ * Resolves the ORS API key from (in order):
+ *   1. explicit param (passed by caller)
+ *   2. Node.js environment (OPENROUTESERVICE_API_KEY)
+ *   3. Vite dev environment (VITE_OPENROUTESERVICE_API_KEY)
+ *
+ * Equivalent to reading from application.properties in Spring Boot.
+ */
+export function resolveApiKey(apiKey?: string): string | undefined {
+  if (apiKey) return apiKey
 
-  let viteKey: string | undefined
-  try {
-    // @ts-ignore import.meta may not be available in some runtimes
-    viteKey = (import.meta as any)?.env?.VITE_OPENROUTESERVICE_API_KEY
-  } catch (e) {
-    viteKey = undefined
-  }
+  const nodeKey = (globalThis as any).process?.env?.OPENROUTESERVICE_API_KEY as string | undefined
+  if (nodeKey) return nodeKey
 
-  const api_key = apiKey || nodeEnvKey || viteKey
-  if (!api_key) {
-    throw new Error('OpenRouteService API key not found. Provide apiKey, set OPENROUTESERVICE_API_KEY or VITE_OPENROUTESERVICE_API_KEY')
-  }
+  // import.meta.env is only available in Vite-bundled code
+  const viteKey = (import.meta as any)?.env?.VITE_OPENROUTESERVICE_API_KEY as string | undefined
+  return viteKey
+}
 
+/**
+ * Builds the autocomplete request URL.
+ * Pure function — deterministic, no side effects, unit-testable.
+ */
+export function buildAutocompleteUrl(text: string, api_key: string): string {
   const params = new URLSearchParams({
-    text: text,
+    text,
     'boundary.country': 'CO',
+    layers: 'locality',   
     api_key,
   })
+  return `${ORS_AUTOCOMPLETE_BASE}?${params.toString()}`
+}
 
-  const url = `${base}?${params.toString()}`
+/**
+ * Maps raw GeoJSON features from the ORS response to domain Location objects.
+ * Pure function — isolated, unit-testable without HTTP.
+ */
+export function mapFeaturesToLocations(features: any[]): Location[] {
+  return features.map((f) => {
+    const name = f.properties?.label ?? ''
+    const coords = f.geometry?.coordinates ?? []
+    return {
+      name,
+      lng: Number(coords[0]) || 0,
+      lat: Number(coords[1]) || 0,
+    } as Location
+  })
+}
 
+/**
+ * Autocomplete adapter — thin orchestrator.
+ * Equivalent to an outbound port adapter in hexagonal architecture.
+ */
+export async function autocomplete(text: string, apiKey?: string): Promise<Location[]> {
+  const api_key = resolveApiKey(apiKey)
+  if (!api_key) {
+    throw new Error(
+      'OpenRouteService API key not found. ' +
+      'Provide apiKey param, or set OPENROUTESERVICE_API_KEY / VITE_OPENROUTESERVICE_API_KEY.'
+    )
+  }
+
+  const url = buildAutocompleteUrl(text, api_key)
   const resp = await fetch(url)
   const json = await resp.json()
 
   if (!json || !Array.isArray(json.features)) return []
-
-  return json.features.map((f: any) => {
-    const label = f.properties?.label ?? ''
-    const coords = f.geometry?.coordinates ?? []
-    const lng = Number(coords[0]) ?? 0
-    const lat = Number(coords[1]) ?? 0
-    return { name: label, lat, lng } as Location
-  })
+  return mapFeaturesToLocations(json.features)
 }
 
 export default { autocomplete }
