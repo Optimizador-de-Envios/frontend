@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "test:integration": "dotenv -e .env.local -- vitest tests/infrastructure/openRouteService.spec.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -24,6 +25,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.39.4",
+    "dotenv-cli": "^5.0.3",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
