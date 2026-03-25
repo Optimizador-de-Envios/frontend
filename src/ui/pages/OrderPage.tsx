@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import type { ShippingPriority } from '../../domain/order'
 import { OrderForm } from '../components/OrderForm'
-import { PrioritySelector } from '../components/PrioritySelector'
+import { PrioritySelector } from '../components/PrioritySelector.tsx'
 import { useOrder } from '../../application/hooks/useOrder'
 
 /**
@@ -11,10 +10,6 @@ import { useOrder } from '../../application/hooks/useOrder'
 export function OrderPage() {
   const [step, setStep] = useState<'form' | 'priority'>('form')
   const { setPriority } = useOrder()
-
-  function handlePriorityConfirm(priority: ShippingPriority) {
-    setPriority(priority)
-  }
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
@@ -27,7 +22,7 @@ export function OrderPage() {
       </header>
       <main className="flex-grow flex items-center justify-center px-6 py-12">
         {step === 'form' && <OrderForm onSuccess={() => setStep('priority')} />}
-        {step === 'priority' && <PrioritySelector onConfirm={handlePriorityConfirm} />}
+        {step === 'priority' && <PrioritySelector onConfirm={setPriority} />}
       </main>
     </div>
   )

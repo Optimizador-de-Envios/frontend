@@ -2,6 +2,30 @@ import { useState } from 'react'
 import type { ShippingPriority } from '../../domain/order'
 import { SHIPPING_PRIORITY } from '../../domain/order'
 
+type Option = {
+  key: ShippingPriority
+  icon: string
+  title: string
+  description: string
+}
+
+const OPTIONS: Option[] = [
+  {
+    key: SHIPPING_PRIORITY.COST,
+    icon: 'payments',
+    title: 'Prioridad Costo',
+    description:
+      'Optimiza para obtener la recomendación con menor costo de envío. Si eliges esta opción pagarás menos, pero el tiempo de entrega será mayor.',
+  },
+  {
+    key: SHIPPING_PRIORITY.TIME,
+    icon: 'schedule',
+    title: 'Prioridad Tiempo',
+    description:
+      'Optimiza para obtener la recomendación con menor tiempo de entrega. Si eliges esta opción pagarás más, pero el tiempo de entrega será menor.',
+  },
+]
+
 type Props = {
   onConfirm: (priority: ShippingPriority) => void
 }
@@ -16,42 +40,25 @@ export function PrioritySelector({ onConfirm }: Props) {
           Selección de Prioridad
         </h1>
         <p className="text-on-surface-variant text-sm mx-auto max-w-md">
-          Elige cómo deseas optimizar el envío: por costo o por tiempo de entrega.
+          El sistema recomendará proveedores según la prioridad seleccionada.
         </p>
       </header>
 
       <div className="grid grid-cols-2 gap-6">
-        <div
-          data-testid="option-cost"
-          onClick={() => setSelected(SHIPPING_PRIORITY.COST)}
-          className={`cursor-pointer rounded-xl border-2 p-6 text-center transition-all ${
-            selected === SHIPPING_PRIORITY.COST
-              ? 'border-primary bg-primary/10'
-              : 'border-surface-variant hover:border-primary/50'
-          }`}
-        >
-          <span className="material-symbols-outlined text-4xl text-primary">payments</span>
-          <h2 className="mt-3 font-headline font-bold text-lg">Prioridad Costo</h2>
-          <p className="mt-1 text-on-surface-variant text-sm">
-            Optimiza la ruta para minimizar el costo del envío.
-          </p>
-        </div>
-
-        <div
-          data-testid="option-time"
-          onClick={() => setSelected(SHIPPING_PRIORITY.TIME)}
-          className={`cursor-pointer rounded-xl border-2 p-6 text-center transition-all ${
-            selected === SHIPPING_PRIORITY.TIME
-              ? 'border-primary bg-primary/10'
-              : 'border-surface-variant hover:border-primary/50'
-          }`}
-        >
-          <span className="material-symbols-outlined text-4xl text-primary">schedule</span>
-          <h2 className="mt-3 font-headline font-bold text-lg">Prioridad Tiempo</h2>
-          <p className="mt-1 text-on-surface-variant text-sm">
-            Optimiza la ruta para minimizar el tiempo de entrega.
-          </p>
-        </div>
+        {OPTIONS.map((opt) => (
+          <div
+            key={opt.key}
+            data-testid={`option-${opt.key.toLowerCase()}`}
+            onClick={() => setSelected(opt.key)}
+            className={`cursor-pointer rounded-xl border-2 p-6 text-center transition-all ${
+              selected === opt.key ? 'border-primary bg-primary/10' : 'border-surface-variant hover:border-primary/50'
+            }`}
+          >
+            <span className="material-symbols-outlined text-4xl text-primary">{opt.icon}</span>
+            <h2 className="mt-3 font-headline font-bold text-lg">{opt.title}</h2>
+            <p className="mt-1 text-on-surface-variant text-sm">{opt.description}</p>
+          </div>
+        ))}
       </div>
 
       <div className="pt-2">
