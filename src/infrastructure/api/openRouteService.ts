@@ -18,6 +18,14 @@ export function resolveApiKey(apiKey?: string): string | undefined {
 
   // import.meta.env is only available in Vite-bundled code
   const viteKey = (import.meta as any)?.env?.VITE_OPENROUTESERVICE_API_KEY as string | undefined
+
+  // Dev-only: resolved sources (no logging)
+
+  // DEV fallback: allow reading a debug-exposed window value if Vite env isn't injected.
+  if (!viteKey && typeof window !== 'undefined' && (window as any).__VITE_OPENROUTESERVICE_API_KEY) {
+    return (window as any).__VITE_OPENROUTESERVICE_API_KEY as string
+  }
+
   return viteKey
 }
 
@@ -65,6 +73,7 @@ export async function autocomplete(text: string, apiKey?: string): Promise<Locat
   }
 
   const url = buildAutocompleteUrl(text, api_key)
+  // Dev-only: final request URL (no logging)
   const resp = await fetch(url)
   const json = await resp.json()
 

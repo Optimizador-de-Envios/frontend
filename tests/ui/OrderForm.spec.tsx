@@ -1,10 +1,15 @@
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { OrderForm } from '../../src/ui/components/OrderForm'
 
 // Mock useOrder — form must not depend on full store wiring in unit tests
 vi.mock('../../src/application/hooks/useOrder', () => ({
-  useOrder: vi.fn(),
+  useOrder: vi.fn(() => ({
+    order: null,
+    submitOrder: vi.fn(() => ({ valid: false, errors: [] })),
+    clearOrder: vi.fn(),
+  })),
 }))
 
 // Mock useAutocomplete — LocationInput must not trigger real fetches
