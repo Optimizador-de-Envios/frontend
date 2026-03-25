@@ -11,7 +11,7 @@ export function useOrder(): {
     setPriority: (p: ShippingPriority) => void
 } {
     const order = useOrderStore((s) => s.order)
-    const priority = useOrderStore((s) => s.priority)
+    const priority = useOrderStore((s) => s.order?.priority ?? null)
     const setOrderStore = useOrderStore((s) => s.setOrder)
     const clearOrderStore = useOrderStore((s) => s.clearOrder)
     const setPriorityStore = useOrderStore((s) => s.setPriority)

@@ -9,7 +9,11 @@ import { WeightInput } from './WeightInput'
  * Owns local form state; delegates submission to useOrder (application layer).
  * Never calls any service or API directly — only through hooks.
  */
-export function OrderForm() {
+type Props = {
+  onSuccess?: () => void
+}
+
+export function OrderForm({ onSuccess }: Props = {}) {
   const { submitOrder } = useOrder()
 
   const [origin,      setOrigin]      = useState<Location | null>(null)
@@ -32,6 +36,7 @@ export function OrderForm() {
     if (result.valid) {
       setErrors([])
       setSubmitted(true)
+      onSuccess?.()
     } else {
       setErrors(result.errors)
     }

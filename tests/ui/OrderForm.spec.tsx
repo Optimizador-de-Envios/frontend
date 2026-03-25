@@ -1,4 +1,3 @@
-import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { OrderForm } from '../../src/ui/components/OrderForm'
@@ -7,8 +6,10 @@ import { OrderForm } from '../../src/ui/components/OrderForm'
 vi.mock('../../src/application/hooks/useOrder', () => ({
   useOrder: vi.fn(() => ({
     order: null,
+    priority: null,
     submitOrder: vi.fn(() => ({ valid: false, errors: [] })),
     clearOrder: vi.fn(),
+    setPriority: vi.fn(),
   })),
 }))
 
@@ -31,8 +32,10 @@ describe('OrderForm (HU-01)', () => {
     vi.clearAllMocks()
     vi.mocked(useOrder).mockReturnValue({
       order: null,
+      priority: null,
       submitOrder: mockSubmitOrder,
       clearOrder: mockClearOrder,
+      setPriority: vi.fn(),
     })
   })
 

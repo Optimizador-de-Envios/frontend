@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Location } from '../../src/domain/order'
+import type { Location } from '../../src/domain/order'
 import { autocomplete } from '../../src/infrastructure/api/openRouteService'
 
 // Integration test — only runs when explicitly enabled to avoid consuming API tokens.

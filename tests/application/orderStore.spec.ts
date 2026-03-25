@@ -35,23 +35,26 @@ describe('useOrderStore (HU-02)', () => {
     useOrderStore.getState().clearOrder()
   })
 
-  it('should have null priority as initial state', () => {
-    expect(useOrderStore.getState().priority).toBeNull()
+  it('should have undefined priority inside order as initial state', () => {
+    expect(useOrderStore.getState().order?.priority).toBeUndefined()
   })
 
-  it('should update priority when setPriority is called with COST', () => {
+  it('should set priority inside order when setPriority is called with COST', () => {
+    useOrderStore.getState().setOrder(validOrder)
     useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
-    expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.COST)
+    expect(useOrderStore.getState().order?.priority).toBe(SHIPPING_PRIORITY.COST)
   })
 
-  it('should update priority when setPriority is called with TIME', () => {
+  it('should set priority inside order when setPriority is called with TIME', () => {
+    useOrderStore.getState().setOrder(validOrder)
     useOrderStore.getState().setPriority(SHIPPING_PRIORITY.TIME)
-    expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.TIME)
+    expect(useOrderStore.getState().order?.priority).toBe(SHIPPING_PRIORITY.TIME)
   })
 
-  it('should reset priority to null when clearOrder is called', () => {
+  it('should reset order (and priority) to null when clearOrder is called', () => {
+    useOrderStore.getState().setOrder(validOrder)
     useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
     useOrderStore.getState().clearOrder()
-    expect(useOrderStore.getState().priority).toBeNull()
+    expect(useOrderStore.getState().order).toBeNull()
   })
 })

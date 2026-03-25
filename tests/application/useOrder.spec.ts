@@ -74,14 +74,17 @@ describe('useOrder hook (HU-02)', () => {
     expect(result.current.priority).toBeNull()
   })
 
-  it('should set priority in store when setPriority is called', () => {
+  it('should set priority inside order when setPriority is called', () => {
     const { result } = renderHook(() => useOrder())
+    act(() => { result.current.submitOrder(validOrder) })
     act(() => { result.current.setPriority(SHIPPING_PRIORITY.COST) })
     expect(result.current.priority).toBe(SHIPPING_PRIORITY.COST)
+    expect(result.current.order?.priority).toBe(SHIPPING_PRIORITY.COST)
   })
 
   it('should clear priority when clearOrder is called', () => {
     const { result } = renderHook(() => useOrder())
+    act(() => { result.current.submitOrder(validOrder) })
     act(() => { result.current.setPriority(SHIPPING_PRIORITY.TIME) })
     act(() => { result.current.clearOrder() })
     expect(result.current.priority).toBeNull()
