@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useOrder } from '../../src/application/hooks/useOrder'
 import { useOrderStore } from '../../src/application/store/orderStore'
+import { SHIPPING_PRIORITY } from '../../src/domain/order'
 
 const validOrder = {
   origin:      { name: 'Bogotá',   lat: 4.711, lng: -74.072 },
@@ -60,5 +61,23 @@ describe('useOrder hook (HU-01)', () => {
     act(() => { result.current.submitOrder(validOrder) })
     act(() => { result.current.clearOrder() })
     expect(result.current.order).toBeNull()
+  })
+
+  it('should have null priority initially', () => {
+    const { result } = renderHook(() => useOrder())
+    expect(result.current.priority).toBeNull()
+  })
+
+  it('should set priority in store when setPriority is called', () => {
+    const { result } = renderHook(() => useOrder())
+    act(() => { result.current.setPriority(SHIPPING_PRIORITY.COST) })
+    expect(result.current.priority).toBe(SHIPPING_PRIORITY.COST)
+  })
+
+  it('should clear priority when clearOrder is called', () => {
+    const { result } = renderHook(() => useOrder())
+    act(() => { result.current.setPriority(SHIPPING_PRIORITY.TIME) })
+    act(() => { result.current.clearOrder() })
+    expect(result.current.priority).toBeNull()
   })
 })
