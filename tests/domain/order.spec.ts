@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateOrder, toKilograms } from '../../src/domain/order'
+import { validateOrder, toKilograms, SHIPPING_PRIORITY } from '../../src/domain/order'
 
 describe('validateOrder (HU-01)', () => {
   it('should validate a correct order with KILOGRAMS', () => {
@@ -102,5 +102,12 @@ describe('toKilograms', () => {
 
   it('should convert POUNDS to KILOGRAMS', () => {
     expect(toKilograms(1, 'POUNDS')).toBeCloseTo(0.453592)
+  })
+})
+
+describe('ShippingPriority (HU-02)', () => {
+  it('should define COST and TIME as valid priorities', () => {
+    expect(SHIPPING_PRIORITY.COST).toBe('COST')
+    expect(SHIPPING_PRIORITY.TIME).toBe('TIME')
   })
 })

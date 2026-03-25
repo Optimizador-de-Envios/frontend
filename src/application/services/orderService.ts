@@ -1,19 +1,21 @@
 import type { Order, ValidationResult } from '../../domain/order'
 import { validateOrder } from '../../domain/order'
-import { useOrderStore } from '../store/orderStore'
 
-// Application service: orchestrates domain validation and store persistence
-export function submitOrderService(order: Order): ValidationResult {
+// Application service: pure orchestrator — depends on injected actions, not on the store directly.
+// Analogía Spring: el @Service recibe el @Repository por constructor, no lo instancia él mismo.
+export function submitOrderService(
+  order: Order,
+  setOrder: (o: Order) => void,
+): ValidationResult {
   const validation = validateOrder(order)
   if (validation.valid) {
-    // Persist in the application state
-    useOrderStore.getState().setOrder(order)
+    setOrder(order)
   }
   return validation
 }
 
-export function clearOrderService(): void {
-  useOrderStore.getState().clearOrder()
+export function clearOrderService(clearOrder: () => void): void {
+  clearOrder()
 }
 
 export default { submitOrderService, clearOrderService }

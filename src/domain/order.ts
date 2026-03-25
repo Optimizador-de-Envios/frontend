@@ -14,11 +14,19 @@ export const WEIGHT_UNIT = {
 
 export type WeightUnit = keyof typeof WEIGHT_UNIT
 
+export const SHIPPING_PRIORITY = {
+  COST: 'COST',
+  TIME: 'TIME',
+} as const
+
+export type ShippingPriority = keyof typeof SHIPPING_PRIORITY
+
 export type Order = {
   origin?: Location
   destination?: Location
   weight?: number
   weightUnit?: WeightUnit
+  priority?: ShippingPriority
 }
 
 export type ValidationResult = {
@@ -30,14 +38,14 @@ export type ValidationResult = {
 
 const MIN_WEIGHT_KG = 0.001
 const MAX_WEIGHT_KG = 70
-const POUND_TO_KG   = 0.453592
+const POUND_TO_KG = 0.453592
 
 export const ORDER_ERRORS = {
-  ORIGIN_REQUIRED:      'origin is required and must include name, lat and lng',
+  ORIGIN_REQUIRED: 'origin is required and must include name, lat and lng',
   DESTINATION_REQUIRED: 'destination is required and must include name, lat and lng',
   WEIGHT_UNIT_REQUIRED: 'weightUnit is required (GRAMS, KILOGRAMS or POUNDS)',
-  WEIGHT_REQUIRED:      'weight is required',
-  WEIGHT_OUT_OF_RANGE:  `weight is out of allowed range (${MIN_WEIGHT_KG} - ${MAX_WEIGHT_KG} Kg)`,
+  WEIGHT_REQUIRED: 'weight is required',
+  WEIGHT_OUT_OF_RANGE: `weight is out of allowed range (${MIN_WEIGHT_KG} - ${MAX_WEIGHT_KG} Kg)`,
 } as const
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -58,8 +66,8 @@ function isValidLocation(loc: unknown): loc is Location {
 // (boundary.country=CO). Domain only validates presence and weight range.
 export function toKilograms(weight: number, unit: WeightUnit): number {
   switch (unit) {
-    case 'GRAMS':     return weight / 1000
-    case 'POUNDS':    return weight * POUND_TO_KG
+    case 'GRAMS': return weight / 1000
+    case 'POUNDS': return weight * POUND_TO_KG
     case 'KILOGRAMS': return weight
   }
 }
