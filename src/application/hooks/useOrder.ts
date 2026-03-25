@@ -12,16 +12,17 @@ export function useOrder(): {
 } {
     const order = useOrderStore((s) => s.order)
     const priority = useOrderStore((s) => s.priority)
+    const setOrderStore = useOrderStore((s) => s.setOrder)
+    const clearOrderStore = useOrderStore((s) => s.clearOrder)
     const setPriorityStore = useOrderStore((s) => s.setPriority)
 
     const submitOrder = useCallback((o: Order) => {
-        const result = submitOrderService(o)
-        return result
-    }, [])
+        return submitOrderService(o, setOrderStore)
+    }, [setOrderStore])
 
     const clearOrder = useCallback(() => {
-        clearOrderService()
-    }, [])
+        clearOrderService(clearOrderStore)
+    }, [clearOrderStore])
 
     const setPriority = useCallback((p: ShippingPriority) => {
         setPriorityStore(p)

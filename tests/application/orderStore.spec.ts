@@ -28,19 +28,29 @@ describe('useOrderStore (HU-01)', () => {
     useOrderStore.getState().clearOrder()
     expect(useOrderStore.getState().order).toBeNull()
   })
+})
 
-  it('should have null priority as initial state and allow setting it', () => {
-    // This test is for HU-02 (priority selection)
+describe('useOrderStore (HU-02)', () => {
+  beforeEach(() => {
+    useOrderStore.getState().clearOrder()
+  })
+
+  it('should have null priority as initial state', () => {
     expect(useOrderStore.getState().priority).toBeNull()
+  })
 
+  it('should update priority when setPriority is called with COST', () => {
     useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
     expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.COST)
+  })
 
-    // also ensure TIME can be set
+  it('should update priority when setPriority is called with TIME', () => {
     useOrderStore.getState().setPriority(SHIPPING_PRIORITY.TIME)
     expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.TIME)
+  })
 
-    // clearOrder should reset priority as well
+  it('should reset priority to null when clearOrder is called', () => {
+    useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
     useOrderStore.getState().clearOrder()
     expect(useOrderStore.getState().priority).toBeNull()
   })

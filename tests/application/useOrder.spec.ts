@@ -62,6 +62,12 @@ describe('useOrder hook (HU-01)', () => {
     act(() => { result.current.clearOrder() })
     expect(result.current.order).toBeNull()
   })
+})
+
+describe('useOrder hook (HU-02)', () => {
+  beforeEach(() => {
+    useOrderStore.getState().clearOrder()
+  })
 
   it('should have null priority initially', () => {
     const { result } = renderHook(() => useOrder())
