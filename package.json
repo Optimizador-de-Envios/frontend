@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
-    "test:integration": "dotenv -e .env.local -- vitest tests/infrastructure/openRouteService.spec.ts",
+    "test:integration": "dotenv -e .env.local -e .env.integration -- vitest run tests/infrastructure/openRouteService.spec.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
