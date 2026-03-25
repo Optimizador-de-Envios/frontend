@@ -11,7 +11,8 @@ export function useOrder(): {
     const order = useOrderStore((s) => s.order)
 
     const submitOrder = useCallback((o: Order) => {
-        return submitOrderService(o)
+        const result = submitOrderService(o)
+        return result
     }, [])
 
     const clearOrder = useCallback(() => {

@@ -8,7 +8,7 @@ const ORS_AUTOCOMPLETE_BASE = 'https://api.openrouteservice.org/geocode/autocomp
  *   2. Node.js environment (OPENROUTESERVICE_API_KEY)
  *   3. Vite dev environment (VITE_OPENROUTESERVICE_API_KEY)
  *
- * Equivalent to reading from application.properties in Spring Boot.
+ * Resolution order: explicit param, Node.js env vars, then Vite env (dev).
  */
 export function resolveApiKey(apiKey?: string): string | undefined {
   if (apiKey) return apiKey

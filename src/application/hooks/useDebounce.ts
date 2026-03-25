@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
  * Generic debounce hook — delays updating the returned value until
  * `delay` ms have passed without a new `value` coming in.
  *
- * Spring analogy → a utility function debouncing events before processing.
+ * Utility: debounces a value to avoid frequent updates.
  */
 export function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState<T>(value)
