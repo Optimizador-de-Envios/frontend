@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useOrderStore } from '../../src/application/store/orderStore'
+import { SHIPPING_PRIORITY } from '../../src/domain/order'
 
 const validOrder = {
   origin:      { name: 'Bogotá',   lat: 4.711, lng: -74.072 },
@@ -26,5 +27,21 @@ describe('useOrderStore (HU-01)', () => {
     useOrderStore.getState().setOrder(validOrder)
     useOrderStore.getState().clearOrder()
     expect(useOrderStore.getState().order).toBeNull()
+  })
+
+  it('should have null priority as initial state and allow setting it', () => {
+    // This test is for HU-02 (priority selection)
+    expect(useOrderStore.getState().priority).toBeNull()
+
+    useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
+    expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.COST)
+
+    // also ensure TIME can be set
+    useOrderStore.getState().setPriority(SHIPPING_PRIORITY.TIME)
+    expect(useOrderStore.getState().priority).toBe(SHIPPING_PRIORITY.TIME)
+
+    // clearOrder should reset priority as well
+    useOrderStore.getState().clearOrder()
+    expect(useOrderStore.getState().priority).toBeNull()
   })
 })
