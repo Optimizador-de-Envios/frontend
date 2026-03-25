@@ -1,73 +1,39 @@
-# React + TypeScript + Vite
+# Optimizador de envíos — MVP
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Pequeña herramienta para validar y recomendar opciones de envío según prioridad (menor costo o menor tiempo).
 
-Currently, two official plugins are available:
+Resumen rápido (MVP)
+- Registro de datos del envío: origen, destino y peso.
+- Selector de prioridad: menor costo o menor tiempo.
+- Motor de evaluación con proveedores simulados (FedEx, DHL, proveedor local representativo).
+- Generación de la recomendación principal y visualización de alternativas.
+- Selección de proveedor y persistencia temporal en estado (Zustand).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Tests
+- Las pruebas unitarias se ejecutan por defecto; la prueba de integración contra OpenRouteService está protegida y **se ejecuta sólo cuando se habilita explícitamente** (para evitar consumir tokens).
 
-## React Compiler
+# Run full unit tests (integration skipped)
+npm test
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Run only the guarded integration test (loads .env.local + .env.integration)
+npm run test:integration
 
-## Expanding the ESLint configuration
+Notas rápidas
+- Proporcione la clave de OpenRouteService en `.env.local` para la integración. No subir ni commitear claves a VCS.
+- El repositorio ya usa un guard para que la integración se ejecute sólo con `RUN_OPENROUTE_INTEGRATION=true`.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Docker (desarrollo)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Levanta el proyecto en un contenedor para desarrollo con HMR disponible en el host.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Construir y levantar:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+docker compose up --build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Abrir en el navegador: http://localhost:5173
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Notas:
+- El `docker-compose` usa `Dockerfile.dev` y monta el código fuente como volumen para desarrollo.
+- Para Windows, `CHOKIDAR_USEPOLLING=true` está activado en la configuración para asegurar que HMR detecte cambios.
