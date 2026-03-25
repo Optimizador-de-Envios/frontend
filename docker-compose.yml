@@ -1,0 +1,12 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_OPENROUTESERVICE_API_KEY: ${VITE_OPENROUTESERVICE_API_KEY}
+    image: optimizador-envios-frontend:latest
+    container_name: optimizador-envios-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
