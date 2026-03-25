@@ -18,6 +18,7 @@ export function LocationInput({ label, testId, value, onChange }: Props) {
   const { suggestions, loading, search } = useAutocomplete()
   const [inputValue, setInputValue]      = useState(value?.name ?? '')
   const [open, setOpen]                  = useState(false)
+  const [hoveredIndex, setHoveredIndex]  = useState<number | null>(null)
 
   function handleInput(text: string) {
     setInputValue(text)
@@ -56,13 +57,17 @@ export function LocationInput({ label, testId, value, onChange }: Props) {
             maxHeight: '200px', overflowY: 'auto',
           }}
         >
-          {suggestions.map((loc) => (
+          {suggestions.map((loc, idx) => (
             <li
               key={`${loc.lat}-${loc.lng}`}
               onClick={() => handleSelect(loc)}
-              style={{ padding: '0.5rem', cursor: 'pointer' }}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.background = '#f0f0f0')}
-              onMouseLeave={(e) => ((e.target as HTMLElement).style.background = '#fff')}
+              style={{
+                padding: '0.5rem',
+                cursor: 'pointer',
+                background: hoveredIndex === idx ? '#f0f0f0' : '#fff',
+              }}
+              onMouseEnter={() => setHoveredIndex(idx)}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
               {loc.name}
             </li>

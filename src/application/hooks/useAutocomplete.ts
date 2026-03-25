@@ -1,39 +1,40 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { Location } from '../../domain/order'
 import { autocomplete } from '../../infrastructure/api/openRouteService'
+import { useDebounce } from './useDebounce'
 
 type UseAutocompleteResult = {
   suggestions: Location[]
   loading: boolean
-  search: (text: string) => Promise<void>
+  search: (text: string) => void
 }
 
 /**
- * Application-layer hook — orchestrates location autocomplete.
+ * Application-layer hook — orchestrates location autocomplete with 1 s debounce.
  * Equivalent to a @Service in Spring Boot:
  *   owns the async state, delegates the HTTP call to the infra adapter.
+ *
+ * Debounce avoids firing an API call on every keystroke.
  */
 export function useAutocomplete(): UseAutocompleteResult {
+  const [query, setQuery]             = useState('')
   const [suggestions, setSuggestions] = useState<Location[]>([])
   const [loading, setLoading]         = useState(false)
+  const debouncedQuery                = useDebounce(query, 1000)
 
-  const search = useCallback(async (text: string) => {
-    if (!text.trim()) {
-      setSuggestions([])
-      return
-    }
-    setLoading(true)
-    try {
-      const results = await autocomplete(text)
-      setSuggestions(results)
-    } catch (err) {
-      // Do not let missing API key or fetch errors crash the UI during dev.
-      // Clear suggestions so the component remains usable.
-      setSuggestions([])
-    } finally {
-      setLoading(false)
-    }
+  const search = useCallback((text: string) => {
+    if (!text.trim()) setSuggestions([])
+    setQuery(text)
   }, [])
+
+  useEffect(() => {
+    if (!debouncedQuery.trim()) return
+    setLoading(true)
+    autocomplete(debouncedQuery)
+      .then(setSuggestions)
+      .catch(() => setSuggestions([]))
+      .finally(() => setLoading(false))
+  }, [debouncedQuery])
 
   return { suggestions, loading, search }
 }

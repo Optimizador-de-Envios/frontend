@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { Location, WeightUnit } from '../../domain/order'
-import { WEIGHT_UNIT } from '../../domain/order'
 import { useOrder } from '../../application/hooks/useOrder'
 import { LocationInput } from './LocationInput'
+import { WeightInput } from './WeightInput'
 
 /**
  * Smart form component for HU-01.
@@ -63,33 +63,12 @@ export function OrderForm() {
         onChange={setDestination}
       />
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>
-          Peso
-        </label>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <input
-            data-testid="input-weight"
-            type="number"
-            min={0}
-            step="any"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            placeholder="Ej: 2.5"
-            style={{ flex: 1, padding: '0.5rem' }}
-          />
-          <select
-            data-testid="select-weight-unit"
-            value={weightUnit}
-            onChange={(e) => setWeightUnit(e.target.value as WeightUnit)}
-            style={{ padding: '0.5rem' }}
-          >
-            {Object.keys(WEIGHT_UNIT).map((unit) => (
-              <option key={unit} value={unit}>{unit}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <WeightInput
+        weight={weight}
+        unit={weightUnit}
+        onWeightChange={setWeight}
+        onUnitChange={setWeightUnit}
+      />
 
       {errors.length > 0 && (
         <ul
