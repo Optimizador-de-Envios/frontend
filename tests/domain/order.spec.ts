@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateOrder, toKilograms } from '../../src/domain/order'
+import { validateOrder, toKilograms, SHIPPING_PRIORITY } from '../../src/domain/order'
 
 describe('validateOrder (HU-01)', () => {
   it('should validate a correct order with KILOGRAMS', () => {
@@ -107,10 +107,6 @@ describe('toKilograms', () => {
 
 describe('ShippingPriority (HU-02)', () => {
   it('should define COST and TIME as valid priorities', () => {
-    // Shipping priority constants will be added to the domain
-    // This test should fail until the domain is updated.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { SHIPPING_PRIORITY } = require('../../src/domain/order')
     expect(SHIPPING_PRIORITY.COST).toBe('COST')
     expect(SHIPPING_PRIORITY.TIME).toBe('TIME')
   })
