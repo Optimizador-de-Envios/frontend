@@ -104,3 +104,14 @@ describe('toKilograms', () => {
     expect(toKilograms(1, 'POUNDS')).toBeCloseTo(0.453592)
   })
 })
+
+describe('ShippingPriority (HU-02)', () => {
+  it('should define COST and TIME as valid priorities', () => {
+    // Shipping priority constants will be added to the domain
+    // This test should fail until the domain is updated.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { SHIPPING_PRIORITY } = require('../../src/domain/order')
+    expect(SHIPPING_PRIORITY.COST).toBe('COST')
+    expect(SHIPPING_PRIORITY.TIME).toBe('TIME')
+  })
+})
