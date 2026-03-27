@@ -1,7 +1,7 @@
 import type { Order } from '../../domain/order'
 import type { Recommendation } from '../../domain/recommendation'
 
-type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
+export type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
 
 const ORDER_API_BASE = import.meta.env.VITE_ORDER_API_BASE ?? 'http://localhost:8080'
 

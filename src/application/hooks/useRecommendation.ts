@@ -1,11 +1,9 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { Order } from '../../domain/order'
 import type { Recommendation } from '../../domain/recommendation'
 import { postOrder } from '../../infrastructure/api/orderApiService'
+import type { ReadyOrder } from '../../infrastructure/api/orderApiService'
 import { useRecommendationStore } from '../store/recommendationStore'
-
-type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
 
 export function useRecommendation(): {
   recommendation: Recommendation | null
