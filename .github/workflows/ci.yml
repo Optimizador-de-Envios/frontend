@@ -1,0 +1,83 @@
+name: CI / Publish
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  ci:
+    name: Test · Build · Docker
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write   # necesario para publicar en GHCR
+
+    steps:
+      # ── Source ────────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Node ──────────────────────────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ── Tests ─────────────────────────────────────────────────────────────────
+      - name: Run unit tests
+        run: npx vitest run
+        # Las pruebas de integración (openRouteService.spec.ts) se omiten
+        # automáticamente porque requieren RUN_OPENROUTE_INTEGRATION=true.
+
+      # ── Vite build (valida TypeScript + genera dist/) ─────────────────────────
+      - name: Build
+        run: npm run build
+        env:
+          VITE_OPENROUTESERVICE_API_KEY: ${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
+
+      # ── Docker ────────────────────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # GHCR exige que el nombre de la imagen esté en minúsculas.
+      - name: Set lowercase image name
+        id: image_name
+        run: |
+          echo "value=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" \
+            >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Genera los tags: latest + sha-<short-commit>
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image_name.outputs.value }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=sha-,format=short
+
+      # Push solo en push (no en pull_request) y solo si todos los pasos anteriores pasaron.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_OPENROUTESERVICE_API_KEY=${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
