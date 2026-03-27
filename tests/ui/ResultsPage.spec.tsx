@@ -1,6 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { ResultsPage } from '../../src/ui/pages/ResultsPage'
+
+const mockOrder = {
+  origin: { name: 'Bogotá', lat: 4.71, lng: -74.07 },
+  destination: { name: 'Medellín', lat: 6.25, lng: -75.56 },
+  weight: 5,
+  weightUnit: 'kg' as const,
+  priority: 'fast' as const,
+}
 
 const mockRecommendation = {
   recommendation: {
@@ -19,39 +27,55 @@ vi.mock('../../src/application/hooks/useRecommendation', () => ({
   useRecommendation: vi.fn(),
 }))
 
+vi.mock('../../src/application/hooks/useConfirmOrder', () => ({
+  useConfirmOrder: vi.fn(),
+}))
+
+vi.mock('../../src/application/store/orderStore', () => ({
+  useOrderStore: vi.fn(),
+}))
+
 import { useRecommendation } from '../../src/application/hooks/useRecommendation'
+import { useConfirmOrder } from '../../src/application/hooks/useConfirmOrder'
+import { useOrderStore } from '../../src/application/store/orderStore'
+
+const mockConfirm = vi.fn()
+
+function setupMocks(overrides = {}) {
+  vi.mocked(useRecommendation).mockReturnValue({
+    recommendation: mockRecommendation,
+    loading: false,
+    error: null,
+    fetchRecommendation: vi.fn(),
+    ...overrides,
+  })
+  vi.mocked(useConfirmOrder).mockReturnValue({
+    confirmationStatus: 'idle',
+    confirmationError: null,
+    confirm: mockConfirm,
+  })
+  vi.mocked(useOrderStore).mockImplementation(
+    (selector: (state: any) => any) =>
+      selector({ order: mockOrder, setOrder: vi.fn(), setPriority: vi.fn(), clearOrder: vi.fn() })
+  )
+}
 
 describe('ResultsPage (HU-03)', () => {
   it('shows recommended provider name', () => {
-    vi.mocked(useRecommendation).mockReturnValue({
-      recommendation: mockRecommendation,
-      loading: false,
-      error: null,
-      fetchRecommendation: vi.fn(),
-    })
+    setupMocks()
     render(<ResultsPage />)
     expect(screen.getByTestId('recommendation-provider').textContent).toContain('Local')
   })
 
   it('shows recommended cost', () => {
-    vi.mocked(useRecommendation).mockReturnValue({
-      recommendation: mockRecommendation,
-      loading: false,
-      error: null,
-      fetchRecommendation: vi.fn(),
-    })
+    setupMocks()
     render(<ResultsPage />)
     const expected = (30386.59).toLocaleString('es-CO', { maximumFractionDigits: 0 })
     expect(screen.getByTestId('recommendation-cost').textContent).toContain(expected)
   })
 
   it('shows estimated days', () => {
-    vi.mocked(useRecommendation).mockReturnValue({
-      recommendation: mockRecommendation,
-      loading: false,
-      error: null,
-      fetchRecommendation: vi.fn(),
-    })
+    setupMocks()
     render(<ResultsPage />)
     expect(screen.getByTestId('recommendation-days').textContent).toContain('1')
   })
@@ -62,6 +86,11 @@ describe('ResultsPage (HU-03)', () => {
       loading: true,
       error: null,
       fetchRecommendation: vi.fn(),
+    })
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'idle',
+      confirmationError: null,
+      confirm: mockConfirm,
     })
     render(<ResultsPage />)
     expect(screen.getByTestId('loading')).toBeDefined()
@@ -74,6 +103,11 @@ describe('ResultsPage (HU-03)', () => {
       error: 'Network error',
       fetchRecommendation: vi.fn(),
     })
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'idle',
+      confirmationError: null,
+      confirm: mockConfirm,
+    })
     render(<ResultsPage />)
     expect(screen.getByTestId('error').textContent).toContain('Network error')
   })
@@ -85,7 +119,86 @@ describe('ResultsPage (HU-03)', () => {
       error: null,
       fetchRecommendation: vi.fn(),
     })
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'idle',
+      confirmationError: null,
+      confirm: mockConfirm,
+    })
     render(<ResultsPage />)
     expect(screen.getByTestId('no-recommendation')).toBeDefined()
+  })
+})
+
+describe('ResultsPage (HU-05) — selection and confirmation', () => {
+  it('renders the recommended option as a card', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    expect(screen.getByTestId('option-card-Local')).toBeDefined()
+  })
+
+  it('renders all alternative options as cards', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    expect(screen.getByTestId('option-card-FedEx')).toBeDefined()
+    expect(screen.getByTestId('option-card-DHL')).toBeDefined()
+  })
+
+  it('each card has a "Seleccionar" button', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    expect(screen.getByTestId('select-button-Local')).toBeDefined()
+    expect(screen.getByTestId('select-button-FedEx')).toBeDefined()
+    expect(screen.getByTestId('select-button-DHL')).toBeDefined()
+  })
+
+  it('confirm button is disabled when no option is selected', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    const btn = screen.getByTestId('confirm-button') as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
+  })
+
+  it('confirm button is enabled after clicking a select button', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    fireEvent.click(screen.getByTestId('select-button-Local'))
+    const btn = screen.getByTestId('confirm-button') as HTMLButtonElement
+    expect(btn.disabled).toBe(false)
+  })
+
+  it('confirm button is enabled after clicking an alternative select button', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    fireEvent.click(screen.getByTestId('select-button-DHL'))
+    const btn = screen.getByTestId('confirm-button') as HTMLButtonElement
+    expect(btn.disabled).toBe(false)
+  })
+
+  it('calls confirm with the selected option when confirm button is clicked', () => {
+    setupMocks()
+    render(<ResultsPage />)
+    fireEvent.click(screen.getByTestId('select-button-FedEx'))
+    fireEvent.click(screen.getByTestId('confirm-button'))
+    expect(mockConfirm).toHaveBeenCalledOnce()
+    expect(mockConfirm).toHaveBeenCalledWith(
+      expect.anything(),
+      { providerName: 'FedEx', cost: 50354.636, currency: 'COP', estimatedDays: 1 }
+    )
+  })
+
+  it('shows no-alternatives message when alternatives array is empty', () => {
+    vi.mocked(useRecommendation).mockReturnValue({
+      recommendation: { ...mockRecommendation, alternatives: [] },
+      loading: false,
+      error: null,
+      fetchRecommendation: vi.fn(),
+    })
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'idle',
+      confirmationError: null,
+      confirm: mockConfirm,
+    })
+    render(<ResultsPage />)
+    expect(screen.getByTestId('no-alternatives')).toBeDefined()
   })
 })

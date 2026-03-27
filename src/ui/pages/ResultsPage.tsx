@@ -1,8 +1,16 @@
+import { useState } from 'react'
 import { AppHeader } from '../components/AppHeader'
 import { useRecommendation } from '../../application/hooks/useRecommendation'
+import { useConfirmOrder } from '../../application/hooks/useConfirmOrder'
+import { useOrderStore } from '../../application/store/orderStore'
+import type { ShippingOption } from '../../domain/recommendation'
+import type { ReadyOrder } from '../../domain/order'
 
 export function ResultsPage() {
   const { recommendation, loading, error } = useRecommendation()
+  const { confirm } = useConfirmOrder()
+  const order = useOrderStore((state) => state.order)
+  const [selectedOption, setSelectedOption] = useState<ShippingOption | null>(null)
 
   if (loading) {
     return (
@@ -30,6 +38,15 @@ export function ResultsPage() {
 
   const { providerName, cost, currency, estimatedDays } = recommendation.recommendation
 
+  const isSelected = (option: ShippingOption) =>
+    selectedOption?.providerName === option.providerName
+
+  function handleConfirm() {
+    if (selectedOption && order) {
+      confirm(order as ReadyOrder, selectedOption)
+    }
+  }
+
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
       <AppHeader />
@@ -44,7 +61,11 @@ export function ResultsPage() {
           </p>
         </div>
 
-        <div className="w-full max-w-2xl rounded-2xl border border-surface-variant bg-surface-container p-8 flex flex-col gap-6">
+        {/* Recommended option card */}
+        <div
+          data-testid={`option-card-${providerName}`}
+          className={`w-full max-w-2xl rounded-2xl border bg-surface-container p-8 flex flex-col gap-6 transition-all ${isSelected(recommendation.recommendation) ? 'border-primary ring-2 ring-primary' : 'border-surface-variant'}`}
+        >
           <div className="flex items-start justify-between gap-6">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-bold tracking-widest text-on-surface-variant uppercase bg-surface-variant px-3 py-1 rounded-full w-fit">
@@ -74,9 +95,13 @@ export function ResultsPage() {
             </div>
           </div>
 
-          <button className="w-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-headline font-bold py-5 rounded-md tracking-tight transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2">
-            Seleccionar este Proveedor
-            <span className="material-symbols-outlined text-xl">arrow_forward</span>
+          <button
+            data-testid={`select-button-${providerName}`}
+            onClick={() => setSelectedOption(recommendation.recommendation)}
+            className="w-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-headline font-bold py-4 rounded-md tracking-tight transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+          >
+            Seleccionar
+            <span className="material-symbols-outlined text-xl">check_circle</span>
           </button>
 
           <p className="text-xs text-on-surface-variant text-center">
@@ -84,10 +109,51 @@ export function ResultsPage() {
           </p>
         </div>
 
-        <div className="w-full max-w-2xl">
+        {/* Alternatives */}
+        <div className="w-full max-w-2xl flex flex-col gap-4">
           <p className="text-xs tracking-widest uppercase text-on-surface-variant text-center">
             Otras Alternativas
           </p>
+          {recommendation.alternatives.length === 0 ? (
+            <p data-testid="no-alternatives" className="text-center text-on-surface-variant text-sm">
+              No hay alternativas disponibles para esta ruta.
+            </p>
+          ) : (
+            recommendation.alternatives.map((option) => (
+              <div
+                key={option.providerName}
+                data-testid={`option-card-${option.providerName}`}
+                className={`rounded-2xl border bg-surface-container p-6 flex items-center justify-between gap-4 transition-all ${isSelected(option) ? 'border-primary ring-2 ring-primary' : 'border-surface-variant'}`}
+              >
+                <div className="flex flex-col gap-1">
+                  <p className="text-xl font-extrabold font-headline text-primary">{option.providerName}</p>
+                  <p className="text-sm text-on-surface-variant">
+                    {option.cost.toLocaleString('es-CO', { maximumFractionDigits: 0 })} {option.currency} · {option.estimatedDays} día(s)
+                  </p>
+                </div>
+                <button
+                  data-testid={`select-button-${option.providerName}`}
+                  onClick={() => setSelectedOption(option)}
+                  className="bg-primary hover:bg-primary-fixed-dim text-on-primary font-headline font-bold py-2 px-6 rounded-md tracking-tight transition-all active:scale-[0.98] shadow flex items-center gap-2"
+                >
+                  Seleccionar
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Global confirm button */}
+        <div className="w-full max-w-2xl">
+          <button
+            data-testid="confirm-button"
+            disabled={selectedOption === null}
+            onClick={handleConfirm}
+            className="w-full bg-primary disabled:bg-surface-variant disabled:text-on-surface-variant hover:bg-primary-fixed-dim text-on-primary font-headline font-bold py-5 rounded-md tracking-tight transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+          >
+            Confirmar selección
+            <span className="material-symbols-outlined text-xl">arrow_forward</span>
+          </button>
         </div>
 
       </main>
