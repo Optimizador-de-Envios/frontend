@@ -58,3 +58,34 @@ describe('useOrderStore (HU-02)', () => {
     expect(useOrderStore.getState().order).toBeNull()
   })
 })
+
+describe('useOrderStore persistence (localStorage)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useOrderStore.getState().clearOrder()
+  })
+
+  it('should persist order to localStorage after setOrder', () => {
+    useOrderStore.getState().setOrder(validOrder)
+    const raw = localStorage.getItem('order-storage')
+    expect(raw).not.toBeNull()
+    const parsed = JSON.parse(raw!)
+    expect(parsed.state.order).toMatchObject(validOrder)
+  })
+
+  it('should persist null order to localStorage after clearOrder', () => {
+    useOrderStore.getState().setOrder(validOrder)
+    useOrderStore.getState().clearOrder()
+    const raw = localStorage.getItem('order-storage')
+    const parsed = JSON.parse(raw!)
+    expect(parsed.state.order).toBeNull()
+  })
+
+  it('should persist updated priority to localStorage after setPriority', () => {
+    useOrderStore.getState().setOrder(validOrder)
+    useOrderStore.getState().setPriority(SHIPPING_PRIORITY.COST)
+    const raw = localStorage.getItem('order-storage')
+    const parsed = JSON.parse(raw!)
+    expect(parsed.state.order.priority).toBe(SHIPPING_PRIORITY.COST)
+  })
+})

@@ -31,3 +31,6 @@ build
 
 # IDE and build folders
 target/
+
+#coverage
+coverage/
