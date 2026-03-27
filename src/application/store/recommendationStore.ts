@@ -2,11 +2,17 @@ import { create } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
 import type { Recommendation, ShippingOption } from '../../domain/recommendation'
 
+export type ConfirmationStatus = 'idle' | 'loading' | 'success' | 'error'
+
 type RecommendationState = {
   recommendation: Recommendation | null
   selectedOption: ShippingOption | null
+  confirmationStatus: ConfirmationStatus
+  confirmationError: string | null
   setRecommendation: (recommendation: Recommendation) => void
   setSelectedOption: (option: ShippingOption) => void
+  setConfirmationStatus: (status: ConfirmationStatus) => void
+  setConfirmationError: (error: string | null) => void
   clearRecommendation: () => void
 }
 
@@ -16,12 +22,27 @@ export const useRecommendationStore = create<RecommendationState>()(
       (set) => ({
         recommendation: null,
         selectedOption: null,
+        confirmationStatus: 'idle',
+        confirmationError: null,
         setRecommendation: (recommendation: Recommendation) =>
           set(() => ({ recommendation }), false, 'setRecommendation'),
         setSelectedOption: (option: ShippingOption) =>
           set(() => ({ selectedOption: option }), false, 'setSelectedOption'),
+        setConfirmationStatus: (status: ConfirmationStatus) =>
+          set(() => ({ confirmationStatus: status }), false, 'setConfirmationStatus'),
+        setConfirmationError: (error: string | null) =>
+          set(() => ({ confirmationError: error }), false, 'setConfirmationError'),
         clearRecommendation: () =>
-          set(() => ({ recommendation: null, selectedOption: null }), false, 'clearRecommendation'),
+          set(
+            () => ({
+              recommendation: null,
+              selectedOption: null,
+              confirmationStatus: 'idle',
+              confirmationError: null,
+            }),
+            false,
+            'clearRecommendation'
+          ),
       }),
       {
         name: 'recommendation-storage',
