@@ -79,5 +79,6 @@ jobs:
           build-args: |
             VITE_OPENROUTESERVICE_API_KEY=${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
             VITE_ORDER_API_BASE=${{ vars.VITE_ORDER_API_BASE }}
+            VITE_ORDER_API_BASE=${{ vars.VITE_ORDER_API_BASE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
