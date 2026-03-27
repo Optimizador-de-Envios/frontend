@@ -4,17 +4,22 @@ import type { Recommendation, ShippingOption } from '../../domain/recommendation
 
 export type ConfirmationStatus = 'idle' | 'loading' | 'success' | 'error'
 
-type RecommendationState = {
+type RecommendationData = {
   recommendation: Recommendation | null
   selectedOption: ShippingOption | null
-  confirmationStatus: ConfirmationStatus
-  confirmationError: string | null
   setRecommendation: (recommendation: Recommendation) => void
   setSelectedOption: (option: ShippingOption) => void
-  setConfirmationStatus: (status: ConfirmationStatus) => void
-  setConfirmationError: (error: string | null) => void
   clearRecommendation: () => void
 }
+
+type ConfirmationState = {
+  confirmationStatus: ConfirmationStatus
+  confirmationError: string | null
+  setConfirmationStatus: (status: ConfirmationStatus) => void
+  setConfirmationError: (error: string | null) => void
+}
+
+type RecommendationState = RecommendationData & ConfirmationState
 
 export const useRecommendationStore = create<RecommendationState>()(
   devtools(
