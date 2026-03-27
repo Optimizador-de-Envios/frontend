@@ -1,8 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { useOrderStore } from './application/store/orderStore'
 import { OrderPage } from './ui/pages/OrderPage'
+import { ResultsPage } from './ui/pages/ResultsPage'
 
 // Expose the store to the window in dev so you can manipulate it from the console
 if (import.meta.env.DEV) {
@@ -16,6 +18,11 @@ if (import.meta.env.DEV) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <OrderPage />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<OrderPage />} />
+        <Route path="/results" element={<ResultsPage />} />
+      </Routes>
+    </BrowserRouter>
   </StrictMode>,
 )
