@@ -24,12 +24,14 @@ const validOrder = {
   priority: 'COST' as const,
 }
 
+const mockNavigate = vi.fn()
+
 vi.mock('../../src/infrastructure/api/orderApiService', () => ({
   postOrder: vi.fn(),
 }))
 
 vi.mock('react-router-dom', () => ({
-  useNavigate: () => vi.fn(),
+  useNavigate: () => mockNavigate,
 }))
 
 import { postOrder } from '../../src/infrastructure/api/orderApiService'
@@ -38,6 +40,7 @@ describe('useRecommendation (HU-03)', () => {
   beforeEach(() => {
     useRecommendationStore.getState().clearRecommendation()
     vi.clearAllMocks()
+    mockNavigate.mockReset()
   })
 
   it('should return null recommendation initially', () => {
@@ -75,13 +78,7 @@ describe('useRecommendation (HU-03)', () => {
   })
 
   it('should navigate to /results after successful fetchRecommendation', async () => {
-    const mockNavigate = vi.fn()
     vi.mocked(postOrder).mockResolvedValueOnce(mockRecommendation)
-
-    vi.doMock('react-router-dom', () => ({
-      useNavigate: () => mockNavigate,
-    }))
-
     const { result } = renderHook(() => useRecommendation())
     await act(async () => {
       await result.current.fetchRecommendation(validOrder)
