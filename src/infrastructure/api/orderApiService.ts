@@ -5,16 +5,22 @@ export type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
 
 const ORDER_API_BASE = import.meta.env.VITE_ORDER_API_BASE ?? 'http://localhost:8080'
 
-export function buildOrderPayload(order: ReadyOrder) {
+function extractOrderFields(order: ReadyOrder) {
   return {
-    order: {
-      origin: order.origin,
-      destination: order.destination,
-      weight: order.weight,
-      weightUnit: order.weightUnit,
-      priority: order.priority,
-    },
+    origin: order.origin,
+    destination: order.destination,
+    weight: order.weight,
+    weightUnit: order.weightUnit,
+    priority: order.priority,
   }
+}
+
+export function buildOrderPayload(order: ReadyOrder) {
+  return { order: extractOrderFields(order) }
+}
+
+export function buildConfirmPayload(order: ReadyOrder, selectedOption: ShippingOption) {
+  return { order: extractOrderFields(order), selectedOption }
 }
 
 export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
@@ -29,19 +35,6 @@ export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
   }
 
   return response.json() as Promise<Recommendation>
-}
-
-export function buildConfirmPayload(order: ReadyOrder, selectedOption: ShippingOption) {
-  return {
-    order: {
-      origin: order.origin,
-      destination: order.destination,
-      weight: order.weight,
-      weightUnit: order.weightUnit,
-      priority: order.priority,
-    },
-    selectedOption,
-  }
 }
 
 export async function confirmOrder(order: ReadyOrder, selectedOption: ShippingOption): Promise<void> {
