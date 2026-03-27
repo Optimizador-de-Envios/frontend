@@ -106,3 +106,49 @@ describe('useRecommendationStore persistence (sessionStorage)', () => {
     expect(parsed.state.selectedOption).toBeNull()
   })
 })
+
+describe('useRecommendationStore confirmationStatus (HU-05)', () => {
+  beforeEach(() => {
+    useRecommendationStore.getState().clearRecommendation()
+  })
+
+  it('should have "idle" as initial confirmationStatus', () => {
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('idle')
+  })
+
+  it('should have null as initial confirmationError', () => {
+    expect(useRecommendationStore.getState().confirmationError).toBeNull()
+  })
+
+  it('should update confirmationStatus when setConfirmationStatus is called', () => {
+    useRecommendationStore.getState().setConfirmationStatus('loading')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('loading')
+  })
+
+  it('should update to "success" status', () => {
+    useRecommendationStore.getState().setConfirmationStatus('success')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('success')
+  })
+
+  it('should update to "error" status', () => {
+    useRecommendationStore.getState().setConfirmationStatus('error')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('error')
+  })
+
+  it('should store confirmationError when setConfirmationError is called', () => {
+    useRecommendationStore.getState().setConfirmationError('confirmOrder failed: 500')
+    expect(useRecommendationStore.getState().confirmationError).toBe('confirmOrder failed: 500')
+  })
+
+  it('should reset confirmationStatus to "idle" when clearRecommendation is called', () => {
+    useRecommendationStore.getState().setConfirmationStatus('success')
+    useRecommendationStore.getState().clearRecommendation()
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('idle')
+  })
+
+  it('should reset confirmationError to null when clearRecommendation is called', () => {
+    useRecommendationStore.getState().setConfirmationError('some error')
+    useRecommendationStore.getState().clearRecommendation()
+    expect(useRecommendationStore.getState().confirmationError).toBeNull()
+  })
+})
