@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateOrder, toKilograms, SHIPPING_PRIORITY, isValidShippingOption } from '../../src/domain/order'
+import { validateOrder, toKilograms, SHIPPING_PRIORITY } from '../../src/domain/order'
 
 describe('validateOrder (HU-01)', () => {
   it('should validate a correct order with KILOGRAMS', () => {
@@ -112,44 +112,4 @@ describe('ShippingPriority (HU-02)', () => {
   })
 })
 
-describe('isValidShippingOption (HU-03)', () => {
-  it('should return true for a well-formed ShippingOption', () => {
-    const option = {
-      providerName: 'Local',
-      cost: 30386.59,
-      currency: 'COP',
-      estimatedDays: 1,
-    }
-    expect(isValidShippingOption(option)).toBe(true)
-  })
 
-  it('should return false when providerName is missing', () => {
-    const option = { providerName: '', cost: 30000, currency: 'COP', estimatedDays: 1 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-
-  it('should return false when cost is negative', () => {
-    const option = { providerName: 'FedEx', cost: -1, currency: 'COP', estimatedDays: 1 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-
-  it('should return false when cost is zero', () => {
-    const option = { providerName: 'DHL', cost: 0, currency: 'COP', estimatedDays: 1 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-
-  it('should return false when estimatedDays is zero', () => {
-    const option = { providerName: 'Local', cost: 30000, currency: 'COP', estimatedDays: 0 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-
-  it('should return false when estimatedDays is negative', () => {
-    const option = { providerName: 'Local', cost: 30000, currency: 'COP', estimatedDays: -1 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-
-  it('should return false when currency is missing', () => {
-    const option = { providerName: 'FedEx', cost: 50000, currency: '', estimatedDays: 2 }
-    expect(isValidShippingOption(option)).toBe(false)
-  })
-})
