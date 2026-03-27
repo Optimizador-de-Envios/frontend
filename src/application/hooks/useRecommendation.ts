@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Recommendation } from '../../domain/recommendation'
 import { postOrder } from '../../infrastructure/api/orderApiService'
-import type { ReadyOrder } from '../../infrastructure/api/orderApiService'
+import type { ReadyOrder } from '../../domain/order'
 import { useRecommendationStore } from '../store/recommendationStore'
 
 export function useRecommendation(): {

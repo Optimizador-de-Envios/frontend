@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { confirmOrder } from '../../infrastructure/api/orderApiService'
-import type { ReadyOrder } from '../../infrastructure/api/orderApiService'
+import type { ReadyOrder } from '../../domain/order'
 import type { ShippingOption } from '../../domain/recommendation'
 import { useRecommendationStore } from '../store/recommendationStore'
 import type { ConfirmationStatus } from '../store/recommendationStore'
