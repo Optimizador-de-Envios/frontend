@@ -34,6 +34,18 @@ export type ValidationResult = {
   errors: string[]
 }
 
+export type ShippingOption = {
+  providerName: string
+  cost: number
+  currency: string
+  estimatedDays: number
+}
+
+export type Recommendation = {
+  recommendation: ShippingOption
+  alternatives: ShippingOption[]
+}
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const MIN_WEIGHT_KG = 0.001
@@ -97,4 +109,17 @@ export function validateOrder(order: Order): ValidationResult {
   }
 
   return { valid: errors.length === 0, errors }
+}
+
+export function isValidShippingOption(option: ShippingOption): boolean {
+  return (
+    typeof option.providerName === 'string' &&
+    option.providerName.trim().length > 0 &&
+    typeof option.cost === 'number' &&
+    option.cost > 0 &&
+    typeof option.currency === 'string' &&
+    option.currency.trim().length > 0 &&
+    typeof option.estimatedDays === 'number' &&
+    option.estimatedDays > 0
+  )
 }
