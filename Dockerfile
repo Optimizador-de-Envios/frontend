@@ -8,10 +8,12 @@ RUN npm ci
 
 COPY . .
 
-# Las variables VITE_ se incrustan en el bundle en tiempo de compilación,
-# por eso se pasan como build args.
+
 ARG VITE_OPENROUTESERVICE_API_KEY
 ENV VITE_OPENROUTESERVICE_API_KEY=$VITE_OPENROUTESERVICE_API_KEY
+
+ARG VITE_ORDER_API_BASE
+ENV VITE_ORDER_API_BASE=$VITE_ORDER_API_BASE
 
 RUN npm run build
 
