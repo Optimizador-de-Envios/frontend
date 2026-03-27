@@ -41,7 +41,8 @@ describe('ResultsPage (HU-03)', () => {
       fetchRecommendation: vi.fn(),
     })
     render(<ResultsPage />)
-    expect(screen.getByTestId('recommendation-cost').textContent).toContain('30386')
+    const expected = (30386.59).toLocaleString('es-CO', { maximumFractionDigits: 0 })
+    expect(screen.getByTestId('recommendation-cost').textContent).toContain(expected)
   })
 
   it('shows estimated days', () => {
