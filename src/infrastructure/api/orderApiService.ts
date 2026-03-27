@@ -1,9 +1,11 @@
 import type { Order } from '../../domain/order'
 import type { Recommendation } from '../../domain/recommendation'
 
+type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
+
 const ORDER_API_BASE = import.meta.env.VITE_ORDER_API_BASE ?? 'http://localhost:8080'
 
-export function buildOrderPayload(order: Order & { priority: NonNullable<Order['priority']> }) {
+export function buildOrderPayload(order: ReadyOrder) {
   return {
     order: {
       origin: order.origin,
@@ -15,7 +17,7 @@ export function buildOrderPayload(order: Order & { priority: NonNullable<Order['
   }
 }
 
-export async function postOrder(order: Order & { priority: NonNullable<Order['priority']> }): Promise<Recommendation> {
+export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
