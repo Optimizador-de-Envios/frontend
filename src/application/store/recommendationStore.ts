@@ -1,14 +1,16 @@
 import { create } from 'zustand'
 import { devtools, persist, createJSONStorage } from 'zustand/middleware'
-import type { Recommendation, ShippingOption } from '../../domain/recommendation'
+import type { Recommendation, ShippingOption, OrderConfirmation } from '../../domain/recommendation'
 
 export type ConfirmationStatus = 'idle' | 'loading' | 'success' | 'error'
 
 type RecommendationData = {
   recommendation: Recommendation | null
   selectedOption: ShippingOption | null
+  orderConfirmation: OrderConfirmation | null
   setRecommendation: (recommendation: Recommendation) => void
   setSelectedOption: (option: ShippingOption) => void
+  setOrderConfirmation: (confirmation: OrderConfirmation) => void
   clearRecommendation: () => void
 }
 
@@ -27,12 +29,15 @@ export const useRecommendationStore = create<RecommendationState>()(
       (set) => ({
         recommendation: null,
         selectedOption: null,
+        orderConfirmation: null,
         confirmationStatus: 'idle',
         confirmationError: null,
         setRecommendation: (recommendation: Recommendation) =>
           set(() => ({ recommendation }), false, 'setRecommendation'),
         setSelectedOption: (option: ShippingOption) =>
           set(() => ({ selectedOption: option }), false, 'setSelectedOption'),
+        setOrderConfirmation: (confirmation: OrderConfirmation) =>
+          set(() => ({ orderConfirmation: confirmation }), false, 'setOrderConfirmation'),
         setConfirmationStatus: (status: ConfirmationStatus) =>
           set(() => ({ confirmationStatus: status }), false, 'setConfirmationStatus'),
         setConfirmationError: (error: string | null) =>
@@ -42,6 +47,7 @@ export const useRecommendationStore = create<RecommendationState>()(
             () => ({
               recommendation: null,
               selectedOption: null,
+              orderConfirmation: null,
               confirmationStatus: 'idle',
               confirmationError: null,
             }),

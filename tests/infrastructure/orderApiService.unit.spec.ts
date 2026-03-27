@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { buildOrderPayload, buildConfirmPayload, confirmOrder } from '../../src/infrastructure/api/orderApiService'
+import type { OrderConfirmation } from '../../src/domain/recommendation'
 
 const validOrder = {
   origin: { name: 'Tunja, BY, Colombia', lng: -73.36778, lat: 5.53528 },
@@ -92,6 +93,17 @@ describe('buildConfirmPayload (HU-05)', () => {
   })
 })
 
+const mockConfirmation: OrderConfirmation = {
+  id: 'abc-123',
+  origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
+  destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
+  weight: 10,
+  weightUnit: 'KILOGRAMS',
+  priority: 'COST',
+  distanceKm: 148.3,
+  selectedOption,
+}
+
 describe('confirmOrder (HU-05)', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
@@ -102,7 +114,9 @@ describe('confirmOrder (HU-05)', () => {
   })
 
   it('calls fetch with POST method to /api/v1/pedido/confirmar', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 200 }))
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
     await confirmOrder(validOrder, selectedOption)
     expect(fetch).toHaveBeenCalledOnce()
     const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
@@ -111,19 +125,33 @@ describe('confirmOrder (HU-05)', () => {
   })
 
   it('sends Content-Type: application/json header', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 200 }))
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
     await confirmOrder(validOrder, selectedOption)
     const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
     expect((options.headers as Record<string, string>)['Content-Type']).toBe('application/json')
   })
 
   it('sends the correct JSON body', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 200 }))
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
     await confirmOrder(validOrder, selectedOption)
     const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
     const body = JSON.parse(options.body as string)
     expect(body.selectedOption.providerName).toBe('Local')
     expect(body.order.priority).toBe('COST')
+  })
+
+  it('returns the OrderConfirmation from the API response', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+    const result = await confirmOrder(validOrder, selectedOption)
+    expect(result.id).toBe('abc-123')
+    expect(result.distanceKm).toBe(148.3)
+    expect(result.selectedOption.providerName).toBe('Local')
   })
 
   it('throws an error when response is not ok', async () => {

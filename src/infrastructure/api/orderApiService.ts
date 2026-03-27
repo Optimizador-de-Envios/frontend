@@ -1,5 +1,5 @@
 import type { Order } from '../../domain/order'
-import type { Recommendation, ShippingOption } from '../../domain/recommendation'
+import type { Recommendation, ShippingOption, OrderConfirmation } from '../../domain/recommendation'
 
 export type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
 
@@ -37,7 +37,7 @@ export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
   return response.json() as Promise<Recommendation>
 }
 
-export async function confirmOrder(order: ReadyOrder, selectedOption: ShippingOption): Promise<void> {
+export async function confirmOrder(order: ReadyOrder, selectedOption: ShippingOption): Promise<OrderConfirmation> {
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido/confirmar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -47,4 +47,6 @@ export async function confirmOrder(order: ReadyOrder, selectedOption: ShippingOp
   if (!response.ok) {
     throw new Error(`confirmOrder failed: ${response.status}`)
   }
+
+  return response.json() as Promise<OrderConfirmation>
 }
