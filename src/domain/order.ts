@@ -34,6 +34,8 @@ export type ValidationResult = {
   errors: string[]
 }
 
+export type ReadyOrder = Order & { priority: NonNullable<Order['priority']> }
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const MIN_WEIGHT_KG = 0.001

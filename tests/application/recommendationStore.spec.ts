@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useRecommendationStore } from '../../src/application/store/recommendationStore'
-import type { ShippingOption } from '../../src/domain/recommendation'
+import type { ShippingOption, OrderConfirmation } from '../../src/domain/recommendation'
 
 const mockRecommendation = {
   recommendation: {
@@ -104,5 +104,93 @@ describe('useRecommendationStore persistence (sessionStorage)', () => {
     const parsed = JSON.parse(raw!)
     expect(parsed.state.recommendation).toBeNull()
     expect(parsed.state.selectedOption).toBeNull()
+  })
+})
+
+describe('useRecommendationStore confirmationStatus (HU-05)', () => {
+  beforeEach(() => {
+    useRecommendationStore.getState().clearRecommendation()
+  })
+
+  it('should have "idle" as initial confirmationStatus', () => {
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('idle')
+  })
+
+  it('should have null as initial confirmationError', () => {
+    expect(useRecommendationStore.getState().confirmationError).toBeNull()
+  })
+
+  it('should update confirmationStatus when setConfirmationStatus is called', () => {
+    useRecommendationStore.getState().setConfirmationStatus('loading')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('loading')
+  })
+
+  it('should update to "success" status', () => {
+    useRecommendationStore.getState().setConfirmationStatus('success')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('success')
+  })
+
+  it('should update to "error" status', () => {
+    useRecommendationStore.getState().setConfirmationStatus('error')
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('error')
+  })
+
+  it('should store confirmationError when setConfirmationError is called', () => {
+    useRecommendationStore.getState().setConfirmationError('confirmOrder failed: 500')
+    expect(useRecommendationStore.getState().confirmationError).toBe('confirmOrder failed: 500')
+  })
+
+  it('should reset confirmationStatus to "idle" when clearRecommendation is called', () => {
+    useRecommendationStore.getState().setConfirmationStatus('success')
+    useRecommendationStore.getState().clearRecommendation()
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('idle')
+  })
+
+  it('should reset confirmationError to null when clearRecommendation is called', () => {
+    useRecommendationStore.getState().setConfirmationError('some error')
+    useRecommendationStore.getState().clearRecommendation()
+    expect(useRecommendationStore.getState().confirmationError).toBeNull()
+  })
+})
+
+describe('useRecommendationStore orderConfirmation (HU-05)', () => {
+  const mockConfirmation: OrderConfirmation = {
+    id: 'abc-123',
+    origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
+    destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
+    weight: 5,
+    weightUnit: 'KILOGRAMS',
+    priority: 'COST',
+    distanceKm: 148.3,
+    selectedOption: { providerName: 'Local', cost: 30386.59, currency: 'COP', estimatedDays: 1 },
+  }
+
+  beforeEach(() => {
+    useRecommendationStore.getState().clearRecommendation()
+  })
+
+  it('should have null orderConfirmation as initial state', () => {
+    expect(useRecommendationStore.getState().orderConfirmation).toBeNull()
+  })
+
+  it('should store orderConfirmation when setOrderConfirmation is called', () => {
+    useRecommendationStore.getState().setOrderConfirmation(mockConfirmation)
+    expect(useRecommendationStore.getState().orderConfirmation).toEqual(mockConfirmation)
+  })
+
+  it('should store distanceKm from the API response', () => {
+    useRecommendationStore.getState().setOrderConfirmation(mockConfirmation)
+    expect(useRecommendationStore.getState().orderConfirmation?.distanceKm).toBe(148.3)
+  })
+
+  it('should store the confirmation id', () => {
+    useRecommendationStore.getState().setOrderConfirmation(mockConfirmation)
+    expect(useRecommendationStore.getState().orderConfirmation?.id).toBe('abc-123')
+  })
+
+  it('should reset orderConfirmation to null when clearRecommendation is called', () => {
+    useRecommendationStore.getState().setOrderConfirmation(mockConfirmation)
+    useRecommendationStore.getState().clearRecommendation()
+    expect(useRecommendationStore.getState().orderConfirmation).toBeNull()
   })
 })

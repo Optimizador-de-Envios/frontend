@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { buildOrderPayload } from '../../src/infrastructure/api/orderApiService'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { buildOrderPayload, buildConfirmPayload, confirmOrder } from '../../src/infrastructure/api/orderApiService'
+import type { OrderConfirmation } from '../../src/domain/recommendation'
 
 const validOrder = {
   origin: { name: 'Tunja, BY, Colombia', lng: -73.36778, lat: 5.53528 },
@@ -48,5 +49,113 @@ describe('buildOrderPayload (HU-03)', () => {
     const order = { ...validOrder, priority: 'TIME' as const }
     const payload = buildOrderPayload(order)
     expect(payload.order.priority).toBe('TIME')
+  })
+})
+
+const selectedOption = {
+  providerName: 'Local',
+  cost: 30386.59,
+  currency: 'COP',
+  estimatedDays: 1,
+}
+
+describe('buildConfirmPayload (HU-05)', () => {
+  it('includes an "order" key with the order data', () => {
+    const payload = buildConfirmPayload(validOrder, selectedOption)
+    expect(payload).toHaveProperty('order')
+    expect(payload.order.origin).toEqual(validOrder.origin)
+    expect(payload.order.destination).toEqual(validOrder.destination)
+    expect(payload.order.weight).toBe(validOrder.weight)
+    expect(payload.order.weightUnit).toBe(validOrder.weightUnit)
+    expect(payload.order.priority).toBe(validOrder.priority)
+  })
+
+  it('includes a "selectedOption" key with the selected provider data', () => {
+    const payload = buildConfirmPayload(validOrder, selectedOption)
+    expect(payload).toHaveProperty('selectedOption')
+    expect(payload.selectedOption).toEqual(selectedOption)
+  })
+
+  it('reflects "providerName" in selectedOption', () => {
+    const payload = buildConfirmPayload(validOrder, selectedOption)
+    expect(payload.selectedOption.providerName).toBe('Local')
+  })
+
+  it('reflects "cost" and "currency" in selectedOption', () => {
+    const payload = buildConfirmPayload(validOrder, selectedOption)
+    expect(payload.selectedOption.cost).toBe(30386.59)
+    expect(payload.selectedOption.currency).toBe('COP')
+  })
+
+  it('reflects "estimatedDays" in selectedOption', () => {
+    const payload = buildConfirmPayload(validOrder, selectedOption)
+    expect(payload.selectedOption.estimatedDays).toBe(1)
+  })
+})
+
+const mockConfirmation: OrderConfirmation = {
+  id: 'abc-123',
+  origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
+  destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
+  weight: 10,
+  weightUnit: 'KILOGRAMS',
+  priority: 'COST',
+  distanceKm: 148.3,
+  selectedOption,
+}
+
+describe('confirmOrder (HU-05)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn())
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('calls fetch with POST method to /api/v1/pedido/confirmar', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+    await confirmOrder(validOrder, selectedOption)
+    expect(fetch).toHaveBeenCalledOnce()
+    const [url, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect(url).toContain('/api/v1/pedido/confirmar')
+    expect(options.method).toBe('POST')
+  })
+
+  it('sends Content-Type: application/json header', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+    await confirmOrder(validOrder, selectedOption)
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect((options.headers as Record<string, string>)['Content-Type']).toBe('application/json')
+  })
+
+  it('sends the correct JSON body', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+    await confirmOrder(validOrder, selectedOption)
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    const body = JSON.parse(options.body as string)
+    expect(body.selectedOption.providerName).toBe('Local')
+    expect(body.order.priority).toBe('COST')
+  })
+
+  it('returns the OrderConfirmation from the API response', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+    const result = await confirmOrder(validOrder, selectedOption)
+    expect(result.id).toBe('abc-123')
+    expect(result.distanceKm).toBe(148.3)
+    expect(result.selectedOption.providerName).toBe('Local')
+  })
+
+  it('throws an error when response is not ok', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 500 }))
+    await expect(confirmOrder(validOrder, selectedOption)).rejects.toThrow('confirmOrder failed: 500')
   })
 })
