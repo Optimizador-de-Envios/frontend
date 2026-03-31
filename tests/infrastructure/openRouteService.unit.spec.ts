@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import {
+import * as openRouteService from '../../src/infrastructure/api/openRouteService'
+
+const {
     resolveApiKey,
     buildAutocompleteUrl,
     mapFeaturesToLocations,
-} from '../../src/infrastructure/api/openRouteService'
+} = openRouteService
 
 // Unit tests for the pure helper functions extracted during REFACTOR.
 // These do NOT need a real API key or network access.
@@ -87,4 +89,47 @@ describe('mapFeaturesToLocations', () => {
     })
 
 
+})
+
+describe('directions helpers (HU-06)', () => {
+    it('builds a directions URL with start and end coordinates', () => {
+        const buildDirectionsUrl = (openRouteService as Record<string, unknown>).buildDirectionsUrl as
+            | ((origin: { lat: number; lng: number }, destination: { lat: number; lng: number }, apiKey: string) => string)
+            | undefined
+
+        expect(buildDirectionsUrl).toBeTypeOf('function')
+        expect(buildDirectionsUrl?.(
+            { lat: 4.71, lng: -74.07 },
+            { lat: 6.25, lng: -75.56 },
+            'test-key'
+        )).toContain('start=-74.07,4.71')
+        expect(buildDirectionsUrl?.(
+            { lat: 4.71, lng: -74.07 },
+            { lat: 6.25, lng: -75.56 },
+            'test-key'
+        )).toContain('end=-75.56,6.25')
+    })
+
+    it('maps OpenRouteService route coordinates to Leaflet coordinates', () => {
+        const mapDirectionsToRoutePath = (openRouteService as Record<string, unknown>).mapDirectionsToRoutePath as
+            | ((routeResponse: { features?: Array<{ geometry?: { coordinates?: number[][] } }> }) => number[][])
+            | undefined
+
+        expect(mapDirectionsToRoutePath).toBeTypeOf('function')
+        expect(mapDirectionsToRoutePath?.({
+            features: [
+                {
+                    geometry: {
+                        coordinates: [
+                            [-74.07, 4.71],
+                            [-75.56, 6.25],
+                        ],
+                    },
+                },
+            ],
+        })).toEqual([
+            [4.71, -74.07],
+            [6.25, -75.56],
+        ])
+    })
 })

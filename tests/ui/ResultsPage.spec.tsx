@@ -202,3 +202,24 @@ describe('ResultsPage (HU-05) — selection and confirmation', () => {
     expect(screen.getByTestId('no-alternatives')).toBeDefined()
   })
 })
+
+describe('ResultsPage (HU-06)', () => {
+  it('renders a shipment route section when the order has valid coordinates', () => {
+    setupMocks()
+    render(<ResultsPage />)
+
+    expect(screen.getByTestId('shipment-route-section')).toBeDefined()
+  })
+
+  it('shows an insufficient-data message when there is no order to render on the map', () => {
+    setupMocks()
+    vi.mocked(useOrderStore).mockImplementation(
+      (selector: (state: any) => any) =>
+        selector({ order: null, setOrder: vi.fn(), setPriority: vi.fn(), clearOrder: vi.fn() })
+    )
+
+    render(<ResultsPage />)
+
+    expect(screen.getByTestId('no-route-data').textContent).toContain('No hay datos suficientes para visualizar el recorrido')
+  })
+})
