@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { Location, WeightUnit } from '../../domain/order'
 import { useOrder } from '../../application/hooks/useOrder'
+import { hasRouteEndpoints } from '../../domain/route'
 import { LocationInput } from './LocationInput'
+import { ShipmentRouteMap } from './ShipmentRouteMap'
 import { WeightInput } from './WeightInput'
 
 /**
@@ -83,6 +85,16 @@ export function OrderForm({ onSuccess }: Props = {}) {
           icon="near_me"
           error={destinationError}
         />
+
+        {hasRouteEndpoints(origin ?? undefined, destination ?? undefined) ? (
+          <ShipmentRouteMap
+            origin={origin ?? undefined}
+            destination={destination ?? undefined}
+            sectionTestId="shipment-route-preview"
+            mapTestId="shipment-route-preview-map"
+            title="Vista previa de la ruta"
+          />
+        ) : null}
 
         <WeightInput
           weight={weight}
