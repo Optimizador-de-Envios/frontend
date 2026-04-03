@@ -17,6 +17,7 @@ const mockRecommendation = {
     currency: 'COP',
     estimatedDays: 1,
   },
+  confirmationToken: 'token-123',
   alternatives: [
     { providerName: 'FedEx', cost: 50354.636, currency: 'COP', estimatedDays: 1 },
     { providerName: 'DHL', cost: 34591.06, currency: 'COP', estimatedDays: 1 },
@@ -52,6 +53,8 @@ function setupMocks(overrides = {}) {
   vi.mocked(useConfirmOrder).mockReturnValue({
     confirmationStatus: 'idle',
     confirmationError: null,
+    currentAttemptConfirmed: false,
+    canConfirm: true,
     confirm: mockConfirm,
   })
   vi.mocked(useOrderStore).mockImplementation(
@@ -90,6 +93,8 @@ describe('ResultsPage (HU-03)', () => {
     vi.mocked(useConfirmOrder).mockReturnValue({
       confirmationStatus: 'idle',
       confirmationError: null,
+      currentAttemptConfirmed: false,
+      canConfirm: true,
       confirm: mockConfirm,
     })
     render(<ResultsPage />)
@@ -106,6 +111,8 @@ describe('ResultsPage (HU-03)', () => {
     vi.mocked(useConfirmOrder).mockReturnValue({
       confirmationStatus: 'idle',
       confirmationError: null,
+      currentAttemptConfirmed: false,
+      canConfirm: true,
       confirm: mockConfirm,
     })
     render(<ResultsPage />)
@@ -122,6 +129,8 @@ describe('ResultsPage (HU-03)', () => {
     vi.mocked(useConfirmOrder).mockReturnValue({
       confirmationStatus: 'idle',
       confirmationError: null,
+      currentAttemptConfirmed: false,
+      canConfirm: true,
       confirm: mockConfirm,
     })
     render(<ResultsPage />)
@@ -196,9 +205,57 @@ describe('ResultsPage (HU-05) — selection and confirmation', () => {
     vi.mocked(useConfirmOrder).mockReturnValue({
       confirmationStatus: 'idle',
       confirmationError: null,
+      currentAttemptConfirmed: false,
+      canConfirm: true,
       confirm: mockConfirm,
     })
     render(<ResultsPage />)
     expect(screen.getByTestId('no-alternatives')).toBeDefined()
+  })
+
+  it('keeps the confirm button disabled when the current attempt was already confirmed', () => {
+    vi.mocked(useRecommendation).mockReturnValue({
+      recommendation: mockRecommendation,
+      loading: false,
+      error: null,
+      fetchRecommendation: vi.fn(),
+    })
+
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'success',
+      confirmationError: null,
+      confirm: mockConfirm,
+      currentAttemptConfirmed: true,
+      canConfirm: false,
+    } as any)
+
+    render(<ResultsPage />)
+
+    fireEvent.click(screen.getByTestId('select-button-Local'))
+
+    const btn = screen.getByTestId('confirm-button') as HTMLButtonElement
+    expect(btn.disabled).toBe(true)
+  })
+
+  it('shows an alert-style message when the current attempt was already confirmed', () => {
+    vi.mocked(useRecommendation).mockReturnValue({
+      recommendation: mockRecommendation,
+      loading: false,
+      error: null,
+      fetchRecommendation: vi.fn(),
+    })
+
+    vi.mocked(useConfirmOrder).mockReturnValue({
+      confirmationStatus: 'success',
+      confirmationError: null,
+      confirm: mockConfirm,
+      currentAttemptConfirmed: true,
+      canConfirm: false,
+    } as any)
+
+    render(<ResultsPage />)
+
+    expect(screen.getByRole('alert')).toBeDefined()
+    expect(screen.getByTestId('attempt-confirmed-message').textContent).toContain('ya fue confirmado')
   })
 })
