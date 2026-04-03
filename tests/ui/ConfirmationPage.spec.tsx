@@ -22,6 +22,12 @@ vi.mock('../../src/application/store/recommendationStore', () => ({
   useRecommendationStore: vi.fn(),
 }))
 
+vi.mock('../../src/ui/components/ShipmentRouteMap', () => ({
+  ShipmentRouteMap: ({ sectionTestId }: { sectionTestId: string }) => (
+    <div data-testid={sectionTestId}>ShipmentRouteMap</div>
+  ),
+}))
+
 import { useRecommendationStore } from '../../src/application/store/recommendationStore'
 
 function setupSuccess() {
@@ -83,6 +89,12 @@ describe('ConfirmationPage — success state', () => {
     setupSuccess()
     render(<ConfirmationPage />)
     expect(screen.getByTestId('confirmation-success')).toBeDefined()
+  })
+
+  it('shows the shipment route map as the final route result', () => {
+    setupSuccess()
+    render(<ConfirmationPage />)
+    expect(screen.getByTestId('shipment-route-section')).toBeDefined()
   })
 
   it('does not show error banner when status is success', () => {

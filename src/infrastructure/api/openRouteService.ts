@@ -1,6 +1,9 @@
 import type { Location } from '../../domain/order'
+import { toLeafletCoordinates } from '../../domain/route'
+import type { RoutePath } from '../../domain/route'
 
 const ORS_AUTOCOMPLETE_BASE = 'https://api.openrouteservice.org/geocode/autocomplete'
+const ORS_DIRECTIONS_BASE = 'https://api.openrouteservice.org/v2/directions/driving-car'
 
 /**
  * Resolves the ORS API key from (in order):
@@ -59,6 +62,19 @@ export function mapFeaturesToLocations(features: any[]): Location[] {
   })
 }
 
+export function buildDirectionsUrl(origin: Location, destination: Location, api_key: string): string {
+  const params = new URLSearchParams({
+    api_key,
+  })
+
+  return `${ORS_DIRECTIONS_BASE}?start=${origin.lng},${origin.lat}&end=${destination.lng},${destination.lat}&${params.toString()}`
+}
+
+export function mapDirectionsToRoutePath(routeResponse: { features?: Array<{ geometry?: { coordinates?: number[][] } }> }): RoutePath {
+  const coordinates = routeResponse.features?.[0]?.geometry?.coordinates ?? []
+  return toLeafletCoordinates(coordinates)
+}
+
 /**
  * Autocomplete adapter — thin orchestrator.
  * Equivalent to an outbound port adapter in hexagonal architecture.
@@ -81,4 +97,20 @@ export async function autocomplete(text: string, apiKey?: string): Promise<Locat
   return mapFeaturesToLocations(json.features)
 }
 
-export default { autocomplete }
+export async function fetchRoute(origin: Location, destination: Location, apiKey?: string): Promise<RoutePath> {
+  const api_key = resolveApiKey(apiKey)
+  if (!api_key) {
+    throw new Error(
+      'OpenRouteService API key not found. ' +
+      'Provide apiKey param, or set OPENROUTESERVICE_API_KEY / VITE_OPENROUTESERVICE_API_KEY.'
+    )
+  }
+
+  const url = buildDirectionsUrl(origin, destination, api_key)
+  const resp = await fetch(url)
+  const json = await resp.json()
+
+  return mapDirectionsToRoutePath(json)
+}
+
+export default { autocomplete, fetchRoute }

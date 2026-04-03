@@ -23,12 +23,19 @@ vi.mock('../../src/application/hooks/useAutocomplete', () => ({
 }))
 
 import { useOrder } from '../../src/application/hooks/useOrder'
+import { useAutocomplete } from '../../src/application/hooks/useAutocomplete'
 
 const mockSubmitOrder = vi.fn()
 const mockClearOrder  = vi.fn()
+const mockSearch = vi.fn()
+let autocompleteCallIndex = 0
+
+const mockOrigin = { name: 'Bogotá, Colombia', lat: 4.6097, lng: -74.0818 }
+const mockDestination = { name: 'Medellín, Colombia', lat: 6.2518, lng: -75.5636 }
 
 describe('OrderForm (HU-01)', () => {
   beforeEach(() => {
+    autocompleteCallIndex = 0
     vi.clearAllMocks()
     vi.mocked(useOrder).mockReturnValue({
       order: null,
@@ -36,6 +43,21 @@ describe('OrderForm (HU-01)', () => {
       submitOrder: mockSubmitOrder,
       clearOrder: mockClearOrder,
       setPriority: vi.fn(),
+    })
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [mockDestination],
+            loading: false,
+            search: mockSearch,
+          }
     })
   })
 
@@ -85,5 +107,74 @@ describe('OrderForm (HU-01)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('order-success')).toBeDefined()
     })
+  })
+})
+
+describe('OrderForm (HU-06)', () => {
+  beforeEach(() => {
+    autocompleteCallIndex = 0
+    vi.clearAllMocks()
+    vi.mocked(useOrder).mockReturnValue({
+      order: null,
+      priority: null,
+      submitOrder: mockSubmitOrder,
+      clearOrder: mockClearOrder,
+      setPriority: vi.fn(),
+    })
+  })
+
+  it('shows a route preview as soon as origin and destination are selected with coordinates', async () => {
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [mockDestination],
+            loading: false,
+            search: mockSearch,
+          }
+    })
+
+    render(<OrderForm />)
+
+    fireEvent.focus(screen.getByTestId('input-origin'))
+    fireEvent.click(screen.getByText('Bogotá, Colombia'))
+
+    fireEvent.focus(screen.getByTestId('input-destination'))
+    fireEvent.click(screen.getByText('Medellín, Colombia'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('shipment-route-preview')).toBeDefined()
+    })
+  })
+
+  it('does not show the route preview when only one endpoint has been selected', () => {
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [],
+            loading: false,
+            search: mockSearch,
+          }
+    })
+
+    render(<OrderForm />)
+
+    fireEvent.focus(screen.getByTestId('input-origin'))
+    fireEvent.click(screen.getByText('Bogotá, Colombia'))
+
+    expect(screen.queryByTestId('shipment-route-preview')).toBeNull()
   })
 })

@@ -1,5 +1,6 @@
 import { AppHeader } from '../components/AppHeader'
 import { useRecommendationStore } from '../../application/store/recommendationStore'
+import { ShipmentRouteMap } from '../components/ShipmentRouteMap'
 
 export function ConfirmationPage() {
   const orderConfirmation = useRecommendationStore((state) => state.orderConfirmation)
@@ -82,6 +83,16 @@ export function ConfirmationPage() {
               <span className="text-base font-normal text-on-surface-variant ml-2">km</span>
             </p>
           </div>
+        </div>
+
+        <div className="w-full max-w-2xl">
+          <ShipmentRouteMap
+            origin={origin}
+            destination={destination}
+            sectionTestId="shipment-route-section"
+            mapTestId="shipment-route-map"
+            title="Ruta final del envío"
+          />
         </div>
 
         {/* Provider details */}
