@@ -64,12 +64,10 @@ export function mapFeaturesToLocations(features: any[]): Location[] {
 
 export function buildDirectionsUrl(origin: Location, destination: Location, api_key: string): string {
   const params = new URLSearchParams({
-    start: `${origin.lng},${origin.lat}`,
-    end: `${destination.lng},${destination.lat}`,
     api_key,
   })
 
-  return `${ORS_DIRECTIONS_BASE}?${params.toString()}`
+  return `${ORS_DIRECTIONS_BASE}?start=${origin.lng},${origin.lat}&end=${destination.lng},${destination.lat}&${params.toString()}`
 }
 
 export function mapDirectionsToRoutePath(routeResponse: { features?: Array<{ geometry?: { coordinates?: number[][] } }> }): RoutePath {

@@ -28,12 +28,14 @@ import { useAutocomplete } from '../../src/application/hooks/useAutocomplete'
 const mockSubmitOrder = vi.fn()
 const mockClearOrder  = vi.fn()
 const mockSearch = vi.fn()
+let autocompleteCallIndex = 0
 
 const mockOrigin = { name: 'Bogotá, Colombia', lat: 4.6097, lng: -74.0818 }
 const mockDestination = { name: 'Medellín, Colombia', lat: 6.2518, lng: -75.5636 }
 
 describe('OrderForm (HU-01)', () => {
   beforeEach(() => {
+    autocompleteCallIndex = 0
     vi.clearAllMocks()
     vi.mocked(useOrder).mockReturnValue({
       order: null,
@@ -42,10 +44,20 @@ describe('OrderForm (HU-01)', () => {
       clearOrder: mockClearOrder,
       setPriority: vi.fn(),
     })
-    vi.mocked(useAutocomplete).mockReturnValue({
-      suggestions: [],
-      loading: false,
-      search: mockSearch,
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [mockDestination],
+            loading: false,
+            search: mockSearch,
+          }
     })
   })
 
@@ -100,6 +112,7 @@ describe('OrderForm (HU-01)', () => {
 
 describe('OrderForm (HU-06)', () => {
   beforeEach(() => {
+    autocompleteCallIndex = 0
     vi.clearAllMocks()
     vi.mocked(useOrder).mockReturnValue({
       order: null,
@@ -111,17 +124,21 @@ describe('OrderForm (HU-06)', () => {
   })
 
   it('shows a route preview as soon as origin and destination are selected with coordinates', async () => {
-    vi.mocked(useAutocomplete)
-      .mockReturnValueOnce({
-        suggestions: [mockOrigin],
-        loading: false,
-        search: mockSearch,
-      })
-      .mockReturnValueOnce({
-        suggestions: [mockDestination],
-        loading: false,
-        search: mockSearch,
-      })
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [mockDestination],
+            loading: false,
+            search: mockSearch,
+          }
+    })
 
     render(<OrderForm />)
 
@@ -137,17 +154,21 @@ describe('OrderForm (HU-06)', () => {
   })
 
   it('does not show the route preview when only one endpoint has been selected', () => {
-    vi.mocked(useAutocomplete)
-      .mockReturnValueOnce({
-        suggestions: [mockOrigin],
-        loading: false,
-        search: mockSearch,
-      })
-      .mockReturnValueOnce({
-        suggestions: [],
-        loading: false,
-        search: mockSearch,
-      })
+    vi.mocked(useAutocomplete).mockImplementation(() => {
+      autocompleteCallIndex += 1
+
+      return autocompleteCallIndex % 2 === 1
+        ? {
+            suggestions: [mockOrigin],
+            loading: false,
+            search: mockSearch,
+          }
+        : {
+            suggestions: [],
+            loading: false,
+            search: mockSearch,
+          }
+    })
 
     render(<OrderForm />)
 
