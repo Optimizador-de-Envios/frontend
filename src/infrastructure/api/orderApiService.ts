@@ -13,33 +13,51 @@ function extractOrderFields(order: ReadyOrder) {
   }
 }
 
-export function buildOrderPayload(order: ReadyOrder) {
-  return { order: extractOrderFields(order) }
+function createConfirmationToken() {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const randomValue = Math.random() * 16 | 0
+    const nextValue = character === 'x' ? randomValue : (randomValue & 0x3) | 0x8
+    return nextValue.toString(16)
+  })
 }
 
-export function buildConfirmPayload(order: ReadyOrder, selectedOption: ShippingOption) {
-  return { order: extractOrderFields(order), selectedOption }
+export function buildOrderPayload(order: ReadyOrder, confirmationToken: string) {
+  return { order: extractOrderFields(order), confirmationToken }
+}
+
+export function buildConfirmPayload(order: ReadyOrder, selectedOption: ShippingOption, confirmationToken: string) {
+  return { order: extractOrderFields(order), selectedOption, confirmationToken }
 }
 
 export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
+  const confirmationToken = createConfirmationToken()
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(buildOrderPayload(order)),
+    body: JSON.stringify(buildOrderPayload(order, confirmationToken)),
   })
 
   if (!response.ok) {
     throw new Error(`postOrder failed: ${response.status}`)
   }
 
-  return response.json() as Promise<Recommendation>
+  const result = await response.json() as Recommendation
+  return { ...result, confirmationToken }
 }
 
-export async function confirmOrder(order: ReadyOrder, selectedOption: ShippingOption): Promise<OrderConfirmation> {
+export async function confirmOrder(
+  order: ReadyOrder,
+  selectedOption: ShippingOption,
+  confirmationToken: string
+): Promise<OrderConfirmation> {
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido/confirmar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(buildConfirmPayload(order, selectedOption)),
+    body: JSON.stringify(buildConfirmPayload(order, selectedOption, confirmationToken)),
   })
 
   if (!response.ok) {
