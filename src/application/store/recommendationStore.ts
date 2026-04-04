@@ -33,7 +33,17 @@ export const useRecommendationStore = create<RecommendationState>()(
         confirmationStatus: 'idle',
         confirmationError: null,
         setRecommendation: (recommendation: Recommendation) =>
-          set(() => ({ recommendation }), false, 'setRecommendation'),
+          set(
+            () => ({
+              recommendation,
+              selectedOption: null,
+              orderConfirmation: null,
+              confirmationStatus: 'idle',
+              confirmationError: null,
+            }),
+            false,
+            'setRecommendation'
+          ),
         setSelectedOption: (option: ShippingOption) =>
           set(() => ({ selectedOption: option }), false, 'setSelectedOption'),
         setOrderConfirmation: (confirmation: OrderConfirmation) =>

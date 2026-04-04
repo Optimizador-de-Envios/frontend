@@ -10,6 +10,7 @@ const mockRecommendation = {
     currency: 'COP',
     estimatedDays: 1,
   },
+  confirmationToken: 'token-123',
   alternatives: [
     { providerName: 'FedEx', cost: 50354.636, currency: 'COP', estimatedDays: 1 },
     { providerName: 'DHL', cost: 34591.06, currency: 'COP', estimatedDays: 1 },

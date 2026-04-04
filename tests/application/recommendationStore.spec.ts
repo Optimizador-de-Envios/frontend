@@ -9,6 +9,7 @@ const mockRecommendation = {
     currency: 'COP',
     estimatedDays: 1,
   },
+  confirmationToken: 'token-123',
   alternatives: [
     { providerName: 'FedEx', cost: 50354.636, currency: 'COP', estimatedDays: 1 },
     { providerName: 'DHL', cost: 34591.06, currency: 'COP', estimatedDays: 1 },
@@ -43,6 +44,28 @@ describe('useRecommendationStore (HU-03)', () => {
     useRecommendationStore.getState().setRecommendation(mockRecommendation)
     useRecommendationStore.getState().clearRecommendation()
     expect(useRecommendationStore.getState().recommendation).toBeNull()
+  })
+
+  it('should clear previous confirmation state when a new recommendation is stored', () => {
+    useRecommendationStore.getState().setOrderConfirmation({
+      id: 'abc-123',
+      confirmationToken: 'token-123',
+      origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
+      destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
+      weight: 5,
+      weightUnit: 'KILOGRAMS',
+      priority: 'COST',
+      distanceKm: 148.3,
+      selectedOption: { providerName: 'Local', cost: 30386.59, currency: 'COP', estimatedDays: 1 },
+    })
+    useRecommendationStore.getState().setConfirmationStatus('success')
+    useRecommendationStore.getState().setConfirmationError('some error')
+
+    useRecommendationStore.getState().setRecommendation(mockRecommendation)
+
+    expect(useRecommendationStore.getState().orderConfirmation).toBeNull()
+    expect(useRecommendationStore.getState().confirmationStatus).toBe('idle')
+    expect(useRecommendationStore.getState().confirmationError).toBeNull()
   })
 })
 
@@ -156,6 +179,7 @@ describe('useRecommendationStore confirmationStatus (HU-05)', () => {
 describe('useRecommendationStore orderConfirmation (HU-05)', () => {
   const mockConfirmation: OrderConfirmation = {
     id: 'abc-123',
+    confirmationToken: 'token-123',
     origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
     destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
     weight: 5,
