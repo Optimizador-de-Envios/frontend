@@ -172,7 +172,7 @@ describe('confirmOrder (HU-05)', () => {
 describe('postOrder confirmationToken contract (F0)', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
-    vi.stubGlobal('crypto', { randomUUID: mockRandomUUID } as Crypto)
+    vi.stubGlobal('crypto', { randomUUID: mockRandomUUID } as unknown as Crypto)
   })
 
   afterEach(() => {
