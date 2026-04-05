@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { buildOrderPayload, buildConfirmPayload, confirmOrder } from '../../src/infrastructure/api/orderApiService'
 import type { OrderConfirmation } from '../../src/domain/recommendation'
+import { useAuthStore } from '../../src/application/store/authStore'
 
 const validOrder = {
   origin: { name: 'Tunja, BY, Colombia', lng: -73.36778, lat: 5.53528 },
@@ -115,6 +116,7 @@ const mockConfirmation: OrderConfirmation = {
 describe('confirmOrder (HU-05)', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
+    useAuthStore.getState().logout()
   })
 
   afterEach(() => {
@@ -141,6 +143,24 @@ describe('confirmOrder (HU-05)', () => {
     expect((options.headers as Record<string, string>)['Content-Type']).toBe('application/json')
   })
 
+  it('sends the Authorization header when a session exists', async () => {
+    useAuthStore.getState().login({
+      user: { id: '1', name: 'Juan Perez', email: 'juan@example.com' },
+      accessToken: 'jwt-123',
+      tokenType: 'Bearer',
+      expiresAt: '2026-04-06T00:00:00.000Z',
+    })
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockConfirmation), { status: 200 })
+    )
+
+    await confirmOrder(validOrder, selectedOption, 'uuid-123')
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect((options.headers as Record<string, string>).Authorization).toBe('Bearer jwt-123')
+  })
+
   it('sends the correct JSON body', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify(mockConfirmation), { status: 200 })
@@ -165,7 +185,17 @@ describe('confirmOrder (HU-05)', () => {
 
   it('throws an error when response is not ok', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 500 }))
-    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow('confirmOrder failed: 500')
+    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow(
+      'Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'
+    )
+  })
+
+  it('throws a user-friendly auth message when confirmOrder returns 401', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 401 }))
+
+    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow(
+      'No tienes una sesión válida. Inicia sesión nuevamente.'
+    )
   })
 })
 
@@ -173,6 +203,7 @@ describe('postOrder confirmationToken contract (F0)', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
     vi.stubGlobal('crypto', { randomUUID: mockRandomUUID } as unknown as Crypto)
+    useAuthStore.getState().logout()
   })
 
   afterEach(() => {
@@ -203,5 +234,24 @@ describe('postOrder confirmationToken contract (F0)', () => {
     const result = await postOrder(validOrder)
 
     expect(result.confirmationToken).toBe('uuid-123')
+  })
+
+  it('sends the Authorization header when a session exists', async () => {
+    const { postOrder } = await import('../../src/infrastructure/api/orderApiService')
+    useAuthStore.getState().login({
+      user: { id: '1', name: 'Juan Perez', email: 'juan@example.com' },
+      accessToken: 'jwt-123',
+      tokenType: 'Bearer',
+      expiresAt: '2026-04-06T00:00:00.000Z',
+    })
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ recommendation: mockConfirmation.selectedOption, alternatives: [] }), { status: 200 })
+    )
+
+    await postOrder(validOrder)
+
+    const [, options] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit]
+    expect((options.headers as Record<string, string>).Authorization).toBe('Bearer jwt-123')
   })
 })

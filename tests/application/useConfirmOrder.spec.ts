@@ -107,7 +107,7 @@ describe('useConfirmOrder (HU-05)', () => {
   })
 
   it('should set confirmationStatus to "error" when confirm fails', async () => {
-    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('confirmOrder failed: 500'))
+    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'))
     const { result } = renderHook(() => useConfirmOrder())
     await act(async () => {
       await result.current.confirm(validOrder, selectedOption)
@@ -116,12 +116,12 @@ describe('useConfirmOrder (HU-05)', () => {
   })
 
   it('should store the error message when confirm fails', async () => {
-    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('confirmOrder failed: 500'))
+    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'))
     const { result } = renderHook(() => useConfirmOrder())
     await act(async () => {
       await result.current.confirm(validOrder, selectedOption)
     })
-    expect(result.current.confirmationError).toBe('confirmOrder failed: 500')
+    expect(result.current.confirmationError).toBe('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.')
   })
 
   it('should NOT navigate when confirm fails', async () => {

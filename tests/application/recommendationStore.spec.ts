@@ -159,8 +159,8 @@ describe('useRecommendationStore confirmationStatus (HU-05)', () => {
   })
 
   it('should store confirmationError when setConfirmationError is called', () => {
-    useRecommendationStore.getState().setConfirmationError('confirmOrder failed: 500')
-    expect(useRecommendationStore.getState().confirmationError).toBe('confirmOrder failed: 500')
+    useRecommendationStore.getState().setConfirmationError('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.')
+    expect(useRecommendationStore.getState().confirmationError).toBe('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.')
   })
 
   it('should reset confirmationStatus to "idle" when clearRecommendation is called', () => {
