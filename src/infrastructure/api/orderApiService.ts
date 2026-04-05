@@ -1,5 +1,6 @@
 import type { ReadyOrder } from '../../domain/order'
 import type { Recommendation, ShippingOption, OrderConfirmation } from '../../domain/recommendation'
+import { useAuthStore } from '../../application/store/authStore'
 
 const ORDER_API_BASE = import.meta.env.VITE_ORDER_API_BASE ?? 'http://localhost:8080'
 
@@ -25,6 +26,18 @@ function createConfirmationToken() {
   })
 }
 
+function getAuthorizationHeader() {
+  const session = useAuthStore.getState().session
+
+  if (!session) {
+    return {}
+  }
+
+  return {
+    Authorization: `${session.tokenType} ${session.accessToken}`,
+  }
+}
+
 export function buildOrderPayload(order: ReadyOrder, confirmationToken: string) {
   return { order: extractOrderFields(order), confirmationToken }
 }
@@ -37,7 +50,10 @@ export async function postOrder(order: ReadyOrder): Promise<Recommendation> {
   const confirmationToken = createConfirmationToken()
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthorizationHeader(),
+    },
     body: JSON.stringify(buildOrderPayload(order, confirmationToken)),
   })
 
@@ -56,7 +72,10 @@ export async function confirmOrder(
 ): Promise<OrderConfirmation> {
   const response = await fetch(`${ORDER_API_BASE}/api/v1/pedido/confirmar`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthorizationHeader(),
+    },
     body: JSON.stringify(buildConfirmPayload(order, selectedOption, confirmationToken)),
   })
 
