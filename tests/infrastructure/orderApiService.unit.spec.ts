@@ -185,7 +185,17 @@ describe('confirmOrder (HU-05)', () => {
 
   it('throws an error when response is not ok', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 500 }))
-    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow('confirmOrder failed: 500')
+    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow(
+      'Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'
+    )
+  })
+
+  it('throws a user-friendly auth message when confirmOrder returns 401', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 401 }))
+
+    await expect(confirmOrder(validOrder, selectedOption, 'uuid-123')).rejects.toThrow(
+      'No tienes una sesión válida. Inicia sesión nuevamente.'
+    )
   })
 })
 

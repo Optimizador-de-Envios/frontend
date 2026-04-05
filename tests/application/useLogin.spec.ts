@@ -94,6 +94,27 @@ describe('useLogin (F2)', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/')
   })
 
+  it('navigates to the provided redirect path on success', async () => {
+    vi.mocked(loginApi).mockResolvedValueOnce({
+      accessToken: 'jwt-123',
+      tokenType: 'Bearer',
+      expiresIn: 86400,
+      user: {
+        id: 'c6f5dd0d-55d7-4e52-a1cf-7cf7c26f4d82',
+        name: 'Juan Perez',
+        email: 'juan@example.com',
+      },
+    })
+
+    const { result } = renderHook(() => useLogin('/results'))
+
+    await act(async () => {
+      await result.current.login({ email: 'juan@example.com', password: 'SecurePass123' })
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith('/results')
+  })
+
   it('sets an error and keeps the session empty when login fails', async () => {
     vi.mocked(loginApi).mockRejectedValueOnce(new Error('Credenciales invalidas'))
 

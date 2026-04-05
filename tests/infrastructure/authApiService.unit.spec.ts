@@ -57,9 +57,27 @@ describe('authApiService (F3)', () => {
     expect(result.createdAt).toBe('2026-04-03T18:30:00Z')
   })
 
-  it('throws when the login response is not ok', async () => {
+  it('throws a user-friendly auth message when the login response is unauthorized', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 401 }))
 
-    await expect(login({ email: 'juan@example.com', password: 'bad' })).rejects.toThrow('auth request failed: 401')
+    await expect(login({ email: 'juan@example.com', password: 'bad' })).rejects.toThrow(
+      'No tienes una sesión válida. Inicia sesión nuevamente.'
+    )
+  })
+
+  it('throws validation details when the login response is 400', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: 'La solicitud contiene datos inválidos',
+          errors: ['email: debe ser un correo válido'],
+        }),
+        { status: 400 }
+      )
+    )
+
+    await expect(login({ email: 'juan@example.com', password: 'bad' })).rejects.toThrow(
+      'La solicitud contiene datos inválidos: email: debe ser un correo válido'
+    )
   })
 })

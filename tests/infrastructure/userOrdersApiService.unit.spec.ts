@@ -49,6 +49,8 @@ describe('userOrdersApiService (F3)', () => {
   it('throws when the response is not ok', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 401 }))
 
-    await expect(getUserOrders('jwt-123')).rejects.toThrow('getUserOrders failed: 401')
+    await expect(getUserOrders('jwt-123')).rejects.toThrow(
+      'No tienes una sesión válida. Inicia sesión nuevamente.'
+    )
   })
 })
