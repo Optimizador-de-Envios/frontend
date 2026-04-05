@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { RegisterPage } from '../../src/ui/pages/RegisterPage'
 
 const mockRegister = vi.fn()
@@ -24,8 +25,16 @@ vi.mock('../../src/ui/components/RegisterForm', () => ({
 }))
 
 describe('RegisterPage (F5)', () => {
+  function renderRegisterPage() {
+    return render(
+      <MemoryRouter>
+        <RegisterPage />
+      </MemoryRouter>
+    )
+  }
+
   it('renders the register form and calls the hook submit handler', () => {
-    render(<RegisterPage />)
+    renderRegisterPage()
 
     fireEvent.click(screen.getByTestId('register-form'))
 
@@ -37,8 +46,8 @@ describe('RegisterPage (F5)', () => {
   })
 
   it('offers a navigation link to login', () => {
-    render(<RegisterPage />)
+    renderRegisterPage()
 
-    expect(screen.getByRole('link', { name: /iniciar sesión/i })).toBeDefined()
+    expect(screen.getAllByRole('link', { name: /iniciar sesión/i }).length).toBeGreaterThan(0)
   })
 })

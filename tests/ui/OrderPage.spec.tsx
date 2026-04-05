@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { OrderPage } from '../../src/ui/pages/OrderPage'
 
 const mockFetchRecommendation = vi.fn()
@@ -56,13 +57,21 @@ describe('OrderPage (HU-02)', () => {
     vi.clearAllMocks()
   })
 
+  function renderOrderPage() {
+    return render(
+      <MemoryRouter>
+        <OrderPage />
+      </MemoryRouter>
+    )
+  }
+
   it('shows OrderForm initially', () => {
-    render(<OrderPage />)
+    renderOrderPage()
     expect(screen.getByTestId('order-form')).toBeDefined()
   })
 
   it('hides OrderForm and shows PrioritySelector after form success', () => {
-    render(<OrderPage />)
+    renderOrderPage()
     fireEvent.click(screen.getByTestId('btn-success'))
     expect(screen.queryByTestId('order-form')).toBeNull()
     expect(screen.getByTestId('priority-selector')).toBeDefined()
@@ -75,7 +84,11 @@ describe('OrderPage (HU-03)', () => {
   })
 
   it('calls fetchRecommendation with order and priority when PrioritySelector confirms', () => {
-    render(<OrderPage />)
+    render(
+      <MemoryRouter>
+        <OrderPage />
+      </MemoryRouter>
+    )
     fireEvent.click(screen.getByTestId('btn-success'))
     fireEvent.click(screen.getByRole('button', { name: /confirmar/i }))
     expect(mockFetchRecommendation).toHaveBeenCalledWith(
@@ -84,7 +97,11 @@ describe('OrderPage (HU-03)', () => {
   })
 
   it('calls setPriority with selected priority when PrioritySelector confirms', () => {
-    render(<OrderPage />)
+    render(
+      <MemoryRouter>
+        <OrderPage />
+      </MemoryRouter>
+    )
     fireEvent.click(screen.getByTestId('btn-success'))
     fireEvent.click(screen.getByRole('button', { name: /confirmar/i }))
     expect(mockSetPriority).toHaveBeenCalledWith('COST')

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { useAuth } from '../../src/application/hooks/useAuth'
 import { useAuthStore } from '../../src/application/store/authStore'
 import { useOrderStore } from '../../src/application/store/orderStore'
@@ -18,7 +18,7 @@ describe('useAuth (F2)', () => {
         email: 'juan@example.com',
       },
     },
-    new Date('2026-04-03T18:30:00Z')
+    new Date('2099-04-03T18:30:00Z')
   )
 
   const expiredSession = createAuthSession(
@@ -92,7 +92,9 @@ describe('useAuth (F2)', () => {
 
     const { result } = renderHook(() => useAuth())
 
-    result.current.logout()
+    act(() => {
+      result.current.logout()
+    })
 
     expect(useAuthStore.getState().session).toBeNull()
     expect(useOrderStore.getState().order).toBeNull()
