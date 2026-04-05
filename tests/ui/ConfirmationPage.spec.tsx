@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { ConfirmationPage } from '../../src/ui/pages/ConfirmationPage'
 
 const mockConfirmation = {
@@ -22,6 +23,12 @@ vi.mock('../../src/application/store/recommendationStore', () => ({
   useRecommendationStore: vi.fn(),
 }))
 
+vi.mock('../../src/ui/components/ShipmentRouteMap', () => ({
+  ShipmentRouteMap: ({ sectionTestId }: { sectionTestId: string }) => (
+    <div data-testid={sectionTestId}>ShipmentRouteMap</div>
+  ),
+}))
+
 import { useRecommendationStore } from '../../src/application/store/recommendationStore'
 
 function setupSuccess() {
@@ -35,59 +42,73 @@ function setupSuccess() {
   )
 }
 
+function renderConfirmationPage() {
+  return render(
+    <MemoryRouter>
+      <ConfirmationPage />
+    </MemoryRouter>
+  )
+}
+
 describe('ConfirmationPage — success state', () => {
   it('shows the confirmation id', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-id').textContent).toContain('ORD-001')
   })
 
   it('shows origin name', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-origin').textContent).toContain('Bogotá')
   })
 
   it('shows destination name', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-destination').textContent).toContain('Medellín')
   })
 
   it('shows distance in km', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-distance').textContent).toContain('415.3')
   })
 
   it('shows selected provider name', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-provider').textContent).toContain('FedEx')
   })
 
   it('shows selected provider cost', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     const expected = (50354.636).toLocaleString('es-CO', { maximumFractionDigits: 0 })
     expect(screen.getByTestId('confirmation-cost').textContent).toContain(expected)
   })
 
   it('shows selected provider estimated days', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-days').textContent).toContain('1')
   })
 
   it('shows success banner when confirmationStatus is success', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-success')).toBeDefined()
+  })
+
+  it('shows the shipment route map as the final route result', () => {
+    setupSuccess()
+    renderConfirmationPage()
+    expect(screen.getByTestId('shipment-route-section')).toBeDefined()
   })
 
   it('does not show error banner when status is success', () => {
     setupSuccess()
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.queryByTestId('confirmation-error')).toBeNull()
   })
 })
@@ -102,7 +123,7 @@ describe('ConfirmationPage — error state', () => {
           confirmationError: 'Error al confirmar el pedido',
         })
     )
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-error')).toBeDefined()
   })
 
@@ -115,7 +136,7 @@ describe('ConfirmationPage — error state', () => {
           confirmationError: 'Error al confirmar el pedido',
         })
     )
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('confirmation-error-message').textContent).toContain(
       'Error al confirmar el pedido'
     )
@@ -130,7 +151,7 @@ describe('ConfirmationPage — error state', () => {
           confirmationError: 'Error al confirmar el pedido',
         })
     )
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.queryByTestId('confirmation-success')).toBeNull()
   })
 })
@@ -145,7 +166,7 @@ describe('ConfirmationPage — empty state', () => {
           confirmationError: null,
         })
     )
-    render(<ConfirmationPage />)
+    renderConfirmationPage()
     expect(screen.getByTestId('no-confirmation')).toBeDefined()
   })
 })

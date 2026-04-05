@@ -21,6 +21,7 @@ const selectedOption = {
 
 const mockConfirmation: OrderConfirmation = {
   id: 'abc-123',
+  confirmationToken: 'token-123',
   origin: { name: 'Tunja, BY, Colombia', lat: 5.53528, lng: -73.36778 },
   destination: { name: 'Bogotá, DC, Colombia', lat: 4.635456, lng: -74.08768 },
   weight: 5,
@@ -45,6 +46,16 @@ import { confirmOrder } from '../../src/infrastructure/api/orderApiService'
 describe('useConfirmOrder (HU-05)', () => {
   beforeEach(() => {
     useRecommendationStore.getState().clearRecommendation()
+    useRecommendationStore.getState().setRecommendation({
+      recommendation: {
+        providerName: 'Local',
+        cost: 30386.59,
+        currency: 'COP',
+        estimatedDays: 1,
+      },
+      alternatives: [],
+      confirmationToken: 'token-123',
+    })
     vi.clearAllMocks()
     mockNavigate.mockReset()
   })
@@ -96,7 +107,7 @@ describe('useConfirmOrder (HU-05)', () => {
   })
 
   it('should set confirmationStatus to "error" when confirm fails', async () => {
-    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('confirmOrder failed: 500'))
+    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'))
     const { result } = renderHook(() => useConfirmOrder())
     await act(async () => {
       await result.current.confirm(validOrder, selectedOption)
@@ -105,12 +116,12 @@ describe('useConfirmOrder (HU-05)', () => {
   })
 
   it('should store the error message when confirm fails', async () => {
-    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('confirmOrder failed: 500'))
+    vi.mocked(confirmOrder).mockRejectedValueOnce(new Error('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.'))
     const { result } = renderHook(() => useConfirmOrder())
     await act(async () => {
       await result.current.confirm(validOrder, selectedOption)
     })
-    expect(result.current.confirmationError).toBe('confirmOrder failed: 500')
+    expect(result.current.confirmationError).toBe('Ocurrió un error inesperado en el servidor (500). Inténtalo de nuevo más tarde.')
   })
 
   it('should NOT navigate when confirm fails', async () => {
@@ -129,5 +140,36 @@ describe('useConfirmOrder (HU-05)', () => {
       await result.current.confirm(validOrder, selectedOption)
     })
     expect(useRecommendationStore.getState().orderConfirmation).toBeNull()
+  })
+
+  it('should reuse the existing confirmation when the current attempt was already confirmed', async () => {
+    const recommendationWithToken = {
+      recommendation: {
+        providerName: 'Local',
+        cost: 30386.59,
+        currency: 'COP',
+        estimatedDays: 1,
+      },
+      alternatives: [],
+      confirmationToken: 'token-123',
+    }
+
+    const confirmationWithToken = {
+      ...mockConfirmation,
+      confirmationToken: 'token-123',
+    }
+
+    useRecommendationStore.getState().setRecommendation(recommendationWithToken as any)
+    useRecommendationStore.getState().setOrderConfirmation(confirmationWithToken as any)
+
+    const { result } = renderHook(() => useConfirmOrder())
+
+    await act(async () => {
+      await result.current.confirm(validOrder, selectedOption)
+    })
+
+    expect(confirmOrder).not.toHaveBeenCalled()
+    expect(useRecommendationStore.getState().orderConfirmation).toEqual(confirmationWithToken)
+    expect(mockNavigate).toHaveBeenCalledWith('/confirmation')
   })
 })

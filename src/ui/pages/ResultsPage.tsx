@@ -8,7 +8,7 @@ import type { ReadyOrder } from '../../domain/order'
 
 export function ResultsPage() {
   const { recommendation, loading, error } = useRecommendation()
-  const { confirm } = useConfirmOrder()
+  const { confirm, currentAttemptConfirmed = false, canConfirm = true, confirmationStatus } = useConfirmOrder()
   const order = useOrderStore((state) => state.order)
   const [selectedOption, setSelectedOption] = useState<ShippingOption | null>(null)
 
@@ -42,7 +42,7 @@ export function ResultsPage() {
     selectedOption?.providerName === option.providerName
 
   function handleConfirm() {
-    if (selectedOption && order) {
+    if (selectedOption && order && canConfirm) {
       confirm(order as ReadyOrder, selectedOption)
     }
   }
@@ -109,6 +109,26 @@ export function ResultsPage() {
           </p>
         </div>
 
+        {currentAttemptConfirmed ? (
+          <div
+            role="alert"
+            data-testid="attempt-confirmed-message"
+            className="w-full max-w-2xl rounded-2xl border border-error/30 bg-error-container/10 px-6 py-5 shadow-[0_0_0_1px_rgba(255,82,82,0.15)] backdrop-blur-sm animate-pulse"
+          >
+            <div className="flex items-start gap-4">
+              <span className="material-symbols-outlined text-3xl text-error mt-0.5">warning</span>
+              <div className="flex flex-col gap-1">
+                <p className="font-headline text-lg font-bold tracking-tight text-error">
+                  Intento ya confirmado
+                </p>
+                <p className="text-sm text-on-surface-variant">
+                  Este intento ya fue confirmado. Si necesitas una nueva cotización, genera un pedido distinto.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* Alternatives */}
         <div className="w-full max-w-2xl flex flex-col gap-4">
           <p className="text-xs tracking-widest uppercase text-on-surface-variant text-center">
@@ -147,7 +167,7 @@ export function ResultsPage() {
         <div className="w-full max-w-2xl">
           <button
             data-testid="confirm-button"
-            disabled={selectedOption === null}
+            disabled={selectedOption === null || confirmationStatus === 'loading' || currentAttemptConfirmed || !canConfirm}
             onClick={handleConfirm}
             className="w-full bg-primary disabled:bg-surface-variant disabled:text-on-surface-variant hover:bg-primary-fixed-dim text-on-primary font-headline font-bold py-5 rounded-md tracking-tight transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
           >
