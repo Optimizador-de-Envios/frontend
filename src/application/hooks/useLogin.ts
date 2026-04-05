@@ -11,7 +11,7 @@ type LoginCredentials = {
 
 type LoginStatus = 'idle' | 'loading' | 'success' | 'error'
 
-export function useLogin(): {
+export function useLogin(redirectTo = '/'): {
   status: LoginStatus
   error: string | null
   login: (credentials: LoginCredentials) => Promise<void>
@@ -29,12 +29,12 @@ export function useLogin(): {
       const response = await loginApi(credentials)
       loginSession(createAuthSession(response))
       setStatus('success')
-      navigate('/')
+      navigate(redirectTo)
     } catch (caughtError) {
       setStatus('error')
       setError(caughtError instanceof Error ? caughtError.message : 'Unknown error')
     }
-  }, [loginSession, navigate])
+  }, [loginSession, navigate, redirectTo])
 
   return { status, error, login }
 }

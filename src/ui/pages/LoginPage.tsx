@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
 import { LoginForm } from '../components/LoginForm'
 import { useLogin } from '../../application/hooks/useLogin'
 
 export function LoginPage() {
-  const { status, error, login } = useLogin()
+  const location = useLocation()
+  const redirectTo = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/'
+  const { status, error, login } = useLogin(redirectTo)
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
