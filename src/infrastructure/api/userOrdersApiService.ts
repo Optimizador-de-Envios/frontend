@@ -1,11 +1,12 @@
 import type { UserOrderSummary } from '../../domain/userOrderSummary'
 import { normalizeUserOrderSummaries } from '../../domain/userOrderSummary'
+import { readApiErrorMessage } from './apiError'
 
 const ORDER_API_BASE = import.meta.env.VITE_ORDER_API_BASE ?? 'http://localhost:8080'
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`getUserOrders failed: ${response.status}`)
+    throw new Error(await readApiErrorMessage(response))
   }
 
   return response.json() as Promise<T>

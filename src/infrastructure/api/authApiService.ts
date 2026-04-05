@@ -1,4 +1,5 @@
 import type { AuthLoginResponse, AuthUser } from '../../domain/auth'
+import { readApiErrorMessage } from './apiError'
 
 const AUTH_API_BASE = import.meta.env.VITE_AUTH_API_BASE ?? 'http://localhost:8081'
 
@@ -19,7 +20,7 @@ type RegisterResponse = AuthUser & {
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`auth request failed: ${response.status}`)
+    throw new Error(await readApiErrorMessage(response))
   }
 
   return response.json() as Promise<T>
