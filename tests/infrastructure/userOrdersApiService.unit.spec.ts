@@ -42,7 +42,7 @@ describe('userOrdersApiService (F3)', () => {
       Authorization: 'Bearer jwt-123',
     })
     expect(orders).toHaveLength(1)
-    expect(orders[0].confirmationToken).toBeUndefined()
+    expect(Object.prototype.hasOwnProperty.call(orders[0], 'confirmationToken')).toBe(false)
     expect(orders[0].selectedOption.providerName).toBe('Local')
   })
 
