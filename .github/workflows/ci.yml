@@ -11,7 +11,12 @@ jobs:
 
     permissions:
       contents: read
-      packages: write   # necesario para publicar en GHCR
+      packages: write
+
+    env:
+      VITE_AUTH_API_BASE: ${{ vars.VITE_AUTH_API_BASE }}
+      VITE_ORDER_API_BASE: ${{ vars.VITE_ORDER_API_BASE }}
+      VITE_OPENROUTESERVICE_API_KEY: ${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
 
     steps:
       # ── Source ────────────────────────────────────────────────────────────────
@@ -30,14 +35,11 @@ jobs:
 
       # ── Tests ─────────────────────────────────────────────────────────────────
       - name: Run unit tests
-        run: npx vitest run
+        run: npm test -- --run
 
       # ── Vite build (valida TypeScript + genera dist/) ─────────────────────────
       - name: Build
         run: npm run build
-        env:
-          VITE_OPENROUTESERVICE_API_KEY: ${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
-          VITE_ORDER_API_BASE: ${{ vars.VITE_ORDER_API_BASE }}
 
       # ── Docker ────────────────────────────────────────────────────────────────
       - name: Set up Docker Buildx
@@ -77,8 +79,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_OPENROUTESERVICE_API_KEY=${{ secrets.VITE_OPENROUTESERVICE_API_KEY }}
-            VITE_ORDER_API_BASE=${{ vars.VITE_ORDER_API_BASE }}
-            VITE_ORDER_API_BASE=${{ vars.VITE_ORDER_API_BASE }}
+            VITE_AUTH_API_BASE=${{ env.VITE_AUTH_API_BASE }}
+            VITE_ORDER_API_BASE=${{ env.VITE_ORDER_API_BASE }}
+            VITE_OPENROUTESERVICE_API_KEY=${{ env.VITE_OPENROUTESERVICE_API_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
