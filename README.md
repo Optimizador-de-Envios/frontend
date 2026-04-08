@@ -1,4 +1,4 @@
-# Optimizador de envíos
+# Optimizador de envíos - Frontend
 
 Frontend del MVP para cotizar, recomendar y confirmar envíos dentro del flujo logístico del sistema. La aplicación actúa como capa de orquestación: recibe datos del usuario, consulta microservicios externos y muestra el resultado final sin contener lógica de negocio pesada.
 
