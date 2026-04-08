@@ -55,3 +55,7 @@ npm run test:integration
 ```
 
 La prueba de integración contra OpenRouteService está protegida para evitar consumo accidental de tokens.
+
+---
+
+**Autores**: Nahuel Lemes, Santiago Angarita.
